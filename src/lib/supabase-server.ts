@@ -3,10 +3,17 @@ import { cookies } from "next/headers";
 
 export async function createServerSupabaseClient() {
     const cookieStore = await cookies();
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    // ビルド時のプリレンダリングエラー防止
+    if (!url || !key) {
+        console.warn("Supabase URL or Key is missing in server client.");
+    }
 
     return createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        url || "https://placeholder.supabase.co",
+        key || "placeholder",
         {
             cookies: {
                 getAll() {
