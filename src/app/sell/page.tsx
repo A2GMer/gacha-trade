@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, Camera, HelpCircle, Info, CheckCircle, AlertCircle } from "lucide-react";
+import { ChevronLeft, HelpCircle, Info, CheckCircle, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { createClient } from "@/lib/supabase";
+import { ImageUploader } from "@/components/items/ImageUploader";
+import { CatalogSelector } from "@/components/items/CatalogSelector";
+import { shareOnX } from "@/lib/share";
 
 function XLogo({ className = "h-4 w-4" }: { className?: string }) {
     return (
@@ -12,47 +17,92 @@ function XLogo({ className = "h-4 w-4" }: { className?: string }) {
     );
 }
 
-const STEPS = [
-    { id: 1, label: "写真" },
-    { id: 2, label: "カタログ" },
-    { id: 3, label: "詳細" },
-    { id: 4, label: "設定" },
-];
+interface CatalogItem {
+    id: string;
+    name: string;
+    manufacturer: string;
+    series: string;
+    image_url: string | null;
+}
 
 export default function SellPage() {
     const router = useRouter();
-    const [currentStep, setCurrentStep] = useState(1);
-    const [photos, setPhotos] = useState<string[]>([]);
+    const { user } = useAuth();
+    const supabase = createClient();
+
+    const [images, setImages] = useState<string[]>([]);
+    const [catalogItemId, setCatalogItemId] = useState<string | null>(null);
+    const [catalogItem, setCatalogItem] = useState<CatalogItem | null>(null);
     const [condition, setCondition] = useState("");
-    const [manufacturer, setManufacturer] = useState("");
     const [isPublic, setIsPublic] = useState(false);
     const [isTradeable, setIsTradeable] = useState(false);
     const [memo, setMemo] = useState("");
+    const [quantity, setQuantity] = useState(1);
     const [submitted, setSubmitted] = useState(false);
+    const [submittedItemId, setSubmittedItemId] = useState<string | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [submitting, setSubmitting] = useState(false);
 
     const handleTradeableToggle = (val: boolean) => {
         setIsTradeable(val);
         if (val) setIsPublic(true);
     };
 
+    const handleCatalogChange = (itemId: string | null, item: CatalogItem | null) => {
+        setCatalogItemId(itemId);
+        setCatalogItem(item);
+        if (itemId) {
+            setErrors((e) => ({ ...e, catalog: "" }));
+        }
+    };
+
     const validate = () => {
         const newErrors: Record<string, string> = {};
-        if (photos.length < 4) newErrors.photos = `写真は4枚必須です（現在 ${photos.length} 枚）`;
+        if (images.length < 4) newErrors.photos = `写真は4枚必須です（現在 ${images.length} 枚）`;
         if (!condition) newErrors.condition = "商品の状態を選択してください";
-        if (!manufacturer) newErrors.manufacturer = "メーカーを選択してください";
+        if (!catalogItemId) newErrors.catalog = "カタログからアイテムを選択してください";
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = () => {
-        if (validate()) {
+    const handleSubmit = async () => {
+        if (!validate() || !user) return;
+
+        setSubmitting(true);
+        try {
+            const { data, error } = await supabase
+                .from("user_items")
+                .insert({
+                    owner_id: user.id,
+                    catalog_item_id: catalogItemId,
+                    images,
+                    condition,
+                    quantity,
+                    memo: memo || null,
+                    is_public: isPublic,
+                    is_tradeable: isTradeable,
+                })
+                .select("id")
+                .single();
+
+            if (error) {
+                console.error("Insert error:", error);
+                setErrors({ submit: "登録に失敗しました。もう一度お試しください。" });
+                return;
+            }
+
+            setSubmittedItemId(data.id);
             setSubmitted(true);
+        } catch (err) {
+            console.error("Submit failed:", err);
+            setErrors({ submit: "登録に失敗しました。" });
+        } finally {
+            setSubmitting(false);
         }
     };
 
     // ===== Submitted State =====
-    if (submitted) {
+    if (submitted && submittedItemId) {
         return (
             <div className="bg-background min-h-screen flex items-center justify-center p-4">
                 <div className="card p-8 max-w-md w-full text-center space-y-5 animate-bounce-in">
@@ -68,18 +118,39 @@ export default function SellPage() {
                     <div className="bg-foreground text-white p-5 rounded-[20px] space-y-3">
                         <p className="text-sm font-bold">🎯 Xでシェアして交換相手を見つけよう！</p>
                         <p className="text-xs text-white/60">シェアすると交換が成立しやすくなります</p>
-                        <button className="btn bg-white text-foreground hover:bg-white/90 w-full py-3 gap-2">
+                        <button
+                            className="btn bg-white text-foreground hover:bg-white/90 w-full py-3 gap-2"
+                            onClick={() => {
+                                if (catalogItem) {
+                                    shareOnX({
+                                        itemName: catalogItem.name,
+                                        condition,
+                                        series: catalogItem.series,
+                                        manufacturer: catalogItem.manufacturer,
+                                        itemId: submittedItemId,
+                                    });
+                                }
+                            }}
+                        >
                             <XLogo className="h-5 w-5" />
                             Xでこのアイテムをシェアする
                         </button>
                     </div>
 
-                    <button
-                        onClick={() => router.push("/")}
-                        className="btn btn-outline w-full py-3"
-                    >
-                        ホームに戻る
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => router.push(`/item/${submittedItemId}`)}
+                            className="btn btn-primary flex-1 py-3"
+                        >
+                            アイテムを見る
+                        </button>
+                        <button
+                            onClick={() => router.push("/")}
+                            className="btn btn-outline flex-1 py-3"
+                        >
+                            ホームに戻る
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -96,93 +167,30 @@ export default function SellPage() {
                 <div className="w-8" />
             </div>
 
-            {/* Progress Bar */}
-            <div className="bg-surface px-6 py-4 border-b border-border">
-                <div className="flex items-center justify-between mb-2">
-                    {STEPS.map((step, i) => (
-                        <div key={step.id} className="flex items-center gap-1">
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${currentStep >= step.id
-                                    ? "bg-primary text-white shadow-md"
-                                    : "bg-background text-muted border border-border"
-                                }`}>
-                                {currentStep > step.id ? <CheckCircle className="h-4 w-4" /> : step.id}
-                            </div>
-                            <span className={`text-[10px] font-bold hidden sm:block ${currentStep >= step.id ? "text-primary" : "text-muted"
-                                }`}>{step.label}</span>
-                            {i < STEPS.length - 1 && (
-                                <div className={`w-8 sm:w-16 h-0.5 mx-1 rounded ${currentStep > step.id ? "bg-primary" : "bg-border"
-                                    }`} />
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
             <div className="container mx-auto max-w-2xl px-4 py-6 space-y-5">
+                {errors.submit && (
+                    <div className="flex items-center gap-2 text-danger text-sm font-bold bg-danger/5 p-4 rounded-2xl animate-fade-in">
+                        <AlertCircle className="h-5 w-5 shrink-0" />
+                        {errors.submit}
+                    </div>
+                )}
+
                 {/* Step 1: Photos */}
-                <div className="card p-5 space-y-4 animate-fade-in-up">
-                    <div className="flex items-center justify-between">
-                        <h2 className="font-black flex items-center gap-2">
-                            📸 商品の写真
-                            <span className="badge bg-primary text-white">必須</span>
-                        </h2>
-                        <span className="text-xs text-muted font-bold">{photos.length}/4枚</span>
-                    </div>
-                    {errors.photos && (
-                        <div className="flex items-center gap-2 text-danger text-xs font-bold bg-danger/5 p-3 rounded-2xl">
-                            <AlertCircle className="h-4 w-4 shrink-0" />
-                            {errors.photos}
-                        </div>
-                    )}
-                    <div className="grid grid-cols-4 gap-2">
-                        {[...Array(4)].map((_, i) => (
-                            <div
-                                key={i}
-                                className={`aspect-square border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all hover:border-primary hover:bg-primary-light ${errors.photos ? "border-danger/50 bg-danger/5" : "border-border bg-background"
-                                    }`}
-                            >
-                                <Camera className={`h-6 w-6 mb-1 ${errors.photos ? "text-danger/50" : "text-muted"}`} />
-                                <span className="text-[10px] text-muted font-medium">{i + 1}枚目</span>
-                            </div>
-                        ))}
-                    </div>
+                <div className="card p-5 animate-fade-in-up">
+                    <ImageUploader
+                        images={images}
+                        onChange={setImages}
+                        error={errors.photos}
+                    />
                 </div>
 
                 {/* Step 2: Catalog Selection */}
-                <div className="card p-5 space-y-4 animate-fade-in-up delay-1">
-                    <h2 className="font-black">📦 カタログから選ぶ</h2>
-                    {errors.manufacturer && (
-                        <div className="flex items-center gap-2 text-danger text-xs font-bold bg-danger/5 p-3 rounded-2xl">
-                            <AlertCircle className="h-4 w-4 shrink-0" />
-                            {errors.manufacturer}
-                        </div>
-                    )}
-                    <div className="space-y-3">
-                        <div>
-                            <label className="text-xs font-bold text-muted mb-1 block">メーカー</label>
-                            <select
-                                value={manufacturer}
-                                onChange={(e) => setManufacturer(e.target.value)}
-                                className={`w-full bg-background border rounded-2xl p-3 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 text-sm font-medium transition-all ${errors.manufacturer ? "border-danger" : "border-border"
-                                    }`}
-                            >
-                                <option value="">選択してください</option>
-                                <option value="bandai">バンダイ</option>
-                                <option value="takara">タカラトミーアーツ</option>
-                                <option value="kitan">キタンクラブ</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold text-muted mb-1 block">シリーズ</label>
-                            <select className="w-full bg-background border border-border rounded-2xl p-3 outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all">
-                                <option>先にメーカーを選択してください</option>
-                            </select>
-                        </div>
-                    </div>
-                    <p className="text-[10px] text-muted flex items-center gap-1">
-                        <HelpCircle className="h-3 w-3" />
-                        見つからない場合は「追加申請」を行ってください
-                    </p>
+                <div className="card p-5 animate-fade-in-up delay-1">
+                    <CatalogSelector
+                        selectedItemId={catalogItemId}
+                        onChange={handleCatalogChange}
+                        error={errors.catalog}
+                    />
                 </div>
 
                 {/* Step 3: Details */}
@@ -201,13 +209,32 @@ export default function SellPage() {
                                     key={c}
                                     onClick={() => { setCondition(c); setErrors((e) => ({ ...e, condition: "" })); }}
                                     className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all ${condition === c
-                                            ? "bg-primary text-white shadow-md"
-                                            : `bg-background text-foreground border ${errors.condition ? "border-danger/30" : "border-border"} hover:border-primary`
+                                        ? "bg-primary text-white shadow-md"
+                                        : `bg-background text-foreground border ${errors.condition ? "border-danger/30" : "border-border"} hover:border-primary`
                                         }`}
                                 >
                                     {c}
                                 </button>
                             ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <h2 className="font-black">🔢 数量</h2>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                className="w-10 h-10 rounded-2xl border border-border text-lg font-bold hover:border-primary transition-colors"
+                            >
+                                −
+                            </button>
+                            <span className="text-lg font-black w-8 text-center">{quantity}</span>
+                            <button
+                                onClick={() => setQuantity(quantity + 1)}
+                                className="w-10 h-10 rounded-2xl border border-border text-lg font-bold hover:border-primary transition-colors"
+                            >
+                                +
+                            </button>
                         </div>
                     </div>
 
@@ -261,9 +288,14 @@ export default function SellPage() {
                 {/* Submit Button */}
                 <button
                     onClick={handleSubmit}
-                    className="btn btn-primary w-full py-4 text-base animate-pulse-glow"
+                    disabled={submitting}
+                    className="btn btn-primary w-full py-4 text-base animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    コレクションに登録する
+                    {submitting ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                        "コレクションに登録する"
+                    )}
                 </button>
             </div>
         </div>

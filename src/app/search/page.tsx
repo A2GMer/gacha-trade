@@ -1,33 +1,95 @@
 "use client";
 
-import { useState } from "react";
-import { Search as SearchIcon, SlidersHorizontal, Star, ShieldCheck, Heart, Eye } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Search as SearchIcon, SlidersHorizontal, Star, ShieldCheck, Eye } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase";
 
-function XLogo({ className = "h-4 w-4" }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
-    );
+interface SearchResult {
+    id: string;
+    images: string[];
+    condition: string;
+    catalog_items: {
+        name: string;
+        series: string;
+        manufacturer: string;
+    };
+    profiles: {
+        display_name: string;
+        rating_avg: number;
+        phone_verified: boolean;
+    };
 }
 
-const MANUFACTURERS = ["すべて", "バンダイ", "タカラトミーアーツ", "キタンクラブ", "ポケモン", "ナガノ"];
-const CONDITIONS = ["すべて", "未開封", "開封済", "傷あり"];
-const SERIES = ["すべて", "カプセルフィギュア Vol.1", "ちいかわスポーツ", "MSアンサンブル", "ふにふにマスコット"];
-
-const RESULTS = [
-    { id: "1", name: "ピカチュウ (カプセルフィギュア Vol.1)", condition: "未開封", image: "https://images.unsplash.com/photo-1610894517343-c5b1fc9a840b?w=400&h=400&fit=crop", user: { name: "たなか", rating: 4.8, verified: true }, watchCount: 14 },
-    { id: "2", name: "ちいかわ サッカーボール", condition: "開封済", image: "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=400&h=400&fit=crop", user: { name: "さとう", rating: 4.5, verified: true }, watchCount: 8 },
-    { id: "3", name: "機動戦士ガンダム モビルスーツアンサンブル", condition: "傷あり", image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&h=400&fit=crop", user: { name: "すずき", rating: 4.9, verified: true }, watchCount: 23 },
-    { id: "5", name: "ワンピース カプセルフィギュア ルフィ", condition: "未開封", image: "https://images.unsplash.com/photo-1608889825103-eb5ed706fc19?w=400&h=400&fit=crop", user: { name: "やまだ", rating: 4.7, verified: true }, watchCount: 31 },
-];
-
 export default function SearchPage() {
+    const supabase = createClient();
     const [showFilters, setShowFilters] = useState(false);
     const [query, setQuery] = useState("");
-    const [selectedMfr, setSelectedMfr] = useState("すべて");
     const [selectedCondition, setSelectedCondition] = useState("すべて");
+    const [results, setResults] = useState<SearchResult[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [manufacturers, setManufacturers] = useState<string[]>([]);
+    const [selectedMfr, setSelectedMfr] = useState("すべて");
+
+    const CONDITIONS = ["すべて", "未開封", "開封済", "傷あり"];
+
+    // メーカー一覧取得
+    useEffect(() => {
+        async function fetchManufacturers() {
+            const { data } = await supabase
+                .from("catalog_items")
+                .select("manufacturer")
+                .eq("is_approved", true);
+            if (data) {
+                const unique = ["すべて", ...new Set(data.map((d) => d.manufacturer))];
+                setManufacturers(unique);
+            }
+        }
+        fetchManufacturers();
+    }, [supabase]);
+
+    // 検索実行
+    const search = useCallback(async () => {
+        setLoading(true);
+
+        let q = supabase
+            .from("user_items")
+            .select(`
+        id,
+        images,
+        condition,
+        catalog_items!inner (name, series, manufacturer),
+        profiles:owner_id (display_name, rating_avg, phone_verified)
+      `)
+            .eq("is_public", true)
+            .order("created_at", { ascending: false })
+            .limit(20);
+
+        if (selectedCondition !== "すべて") {
+            q = q.eq("condition", selectedCondition);
+        }
+
+        if (selectedMfr !== "すべて") {
+            q = q.eq("catalog_items.manufacturer", selectedMfr);
+        }
+
+        if (query.trim()) {
+            q = q.ilike("catalog_items.name", `%${query.trim()}%`);
+        }
+
+        const { data, error } = await q;
+
+        if (data && !error) {
+            setResults(data as unknown as SearchResult[]);
+        } else {
+            setResults([]);
+        }
+        setLoading(false);
+    }, [supabase, query, selectedCondition, selectedMfr]);
+
+    useEffect(() => {
+        search();
+    }, [search]);
 
     return (
         <div className="bg-background min-h-screen pb-24">
@@ -59,7 +121,7 @@ export default function SearchPage() {
                         <div>
                             <p className="text-[10px] font-bold text-muted uppercase mb-1.5 tracking-wider">メーカー</p>
                             <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-                                {MANUFACTURERS.map((m) => (
+                                {manufacturers.map((m) => (
                                     <button
                                         key={m}
                                         onClick={() => setSelectedMfr(m)}
@@ -92,35 +154,47 @@ export default function SearchPage() {
 
             {/* Results */}
             <div className="container mx-auto px-4 pt-4">
-                <p className="text-xs text-muted mb-3 font-bold">{RESULTS.length}件のアイテムが見つかりました</p>
-                <div className="grid grid-cols-2 gap-3">
-                    {RESULTS.map((item, i) => (
-                        <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
-                            <div className="card group">
-                                <div className="relative aspect-square">
-                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                    <span className={`absolute top-2 left-2 badge ${item.condition === "未開封" ? "bg-accent text-white" :
-                                            item.condition === "開封済" ? "bg-foreground/70 text-white" : "bg-warning text-white"
-                                        }`}>
-                                        {item.condition}
-                                    </span>
-                                    <div className="absolute bottom-2 right-2 badge bg-black/50 text-white backdrop-blur-sm">
-                                        <Eye className="h-3 w-3" /> {item.watchCount}
-                                    </div>
-                                </div>
-                                <div className="p-3">
-                                    <h3 className="text-sm font-bold line-clamp-2 leading-snug mb-1.5">{item.name}</h3>
-                                    <div className="flex items-center gap-1 text-[10px] text-muted">
-                                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                        <span className="font-bold text-foreground">{item.user.rating}</span>
-                                        {item.user.verified && <ShieldCheck className="h-3 w-3 text-accent" />}
-                                        <span className="ml-0.5">{item.user.name}</span>
-                                    </div>
-                                </div>
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    </div>
+                ) : (
+                    <>
+                        <p className="text-xs text-muted mb-3 font-bold">{results.length}件のアイテムが見つかりました</p>
+                        {results.length === 0 ? (
+                            <div className="text-center py-16 space-y-3">
+                                <p className="text-4xl">🔍</p>
+                                <p className="text-muted font-bold">条件に合うアイテムが見つかりませんでした</p>
                             </div>
-                        </Link>
-                    ))}
-                </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-3">
+                                {results.map((item, i) => (
+                                    <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
+                                        <div className="card group">
+                                            <div className="relative aspect-square">
+                                                <img src={item.images?.[0] || "/placeholder.png"} alt={item.catalog_items?.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                <span className={`absolute top-2 left-2 badge ${item.condition === "未開封" ? "bg-accent text-white" :
+                                                    item.condition === "開封済" ? "bg-foreground/70 text-white" : "bg-warning text-white"
+                                                    }`}>
+                                                    {item.condition}
+                                                </span>
+                                            </div>
+                                            <div className="p-3">
+                                                <h3 className="text-sm font-bold line-clamp-2 leading-snug mb-1.5">{item.catalog_items?.name}</h3>
+                                                <div className="flex items-center gap-1 text-[10px] text-muted">
+                                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                                    <span className="font-bold text-foreground">{item.profiles?.rating_avg || 0}</span>
+                                                    {item.profiles?.phone_verified && <ShieldCheck className="h-3 w-3 text-accent" />}
+                                                    <span className="ml-0.5">{item.profiles?.display_name || "ユーザー"}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     );

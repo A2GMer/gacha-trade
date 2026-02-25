@@ -3,6 +3,7 @@ import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
@@ -33,11 +34,13 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${notoSansJP.variable} font-[family-name:var(--font-noto-sans-jp)] antialiased pb-20 sm:pb-0`}>
-        <Header />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <BottomNav />
+        <AuthProvider>
+          <Header />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <BottomNav />
+        </AuthProvider>
       </body>
     </html>
   );

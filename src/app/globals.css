@@ -323,9 +323,9 @@ body {
 
 /* ===== Gradient helpers ===== */
 .gradient-hero {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: linear-gradient(135deg, #e6002d 0%, #ff6b6b 100%);
 }
 
 .gradient-hero-soft {
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 50%, var(--accent-light) 100%);
+  background: linear-gradient(135deg, #fff0f3 0%, #fff5f5 50%, #e6faf6 100%);
 }

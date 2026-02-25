@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Star, ShieldCheck, Flag, Ban, ChevronLeft, MessageCircle, Heart, Eye, Share2 } from "lucide-react";
+import { Star, ShieldCheck, Flag, Ban, ChevronLeft, MessageCircle, Heart, Eye } from "lucide-react";
 import { shareOnX } from "@/lib/share";
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
+import { createClient } from "@/lib/supabase";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useRouter } from "next/navigation";
 
 function XLogo({ className = "h-4 w-4" }: { className?: string }) {
     return (
@@ -13,38 +16,87 @@ function XLogo({ className = "h-4 w-4" }: { className?: string }) {
     );
 }
 
-const getItemData = (id: string) => {
-    return {
-        id,
-        name: "ピカチュウ (カプセルフィギュア Vol.1)",
-        manufacturer: "ポケモン",
-        series: "カプセルフィギュア Vol.1",
-        condition: "未開封",
-        watchCount: 14,
-        images: [
-            "https://images.unsplash.com/photo-1610894517343-c5b1fc9a840b?w=800&h=800&fit=crop",
-            "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800&h=800&fit=crop",
-            "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=800&fit=crop",
-            "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=800&h=800&fit=crop",
-        ],
-        description: "カプセルから出したばかりの未開封品です。ミニブックも付属します。ダブってしまったので、リザードンか他の同シリーズアイテムと交換希望です。",
-        user: {
-            id: "u1",
-            name: "たなか",
-            rating: 4.8,
-            trade_count: 52,
-            smsVerified: true,
-            avatar: "https://ui-avatars.com/api/?name=TN&background=E6002D&color=fff&bold=true",
-        },
+interface ItemData {
+    id: string;
+    images: string[];
+    condition: string;
+    quantity: number;
+    memo: string | null;
+    is_tradeable: boolean;
+    owner_id: string;
+    catalog_items: {
+        name: string;
+        series: string;
+        manufacturer: string;
     };
-};
+    profiles: {
+        id: string;
+        display_name: string;
+        rating_avg: number;
+        trade_count: number;
+        phone_verified: boolean;
+    };
+}
 
 export default function ItemPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+    const { user } = useAuth();
+    const router = useRouter();
+    const supabase = createClient();
+    const [item, setItem] = useState<ItemData | null>(null);
+    const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(0);
     const [liked, setLiked] = useState(false);
 
-    // Use a default ID for now (would use React.use(params) in production)
-    const item = getItemData("1");
+    useEffect(() => {
+        async function fetchItem() {
+            const { data, error } = await supabase
+                .from("user_items")
+                .select(`
+          id,
+          images,
+          condition,
+          quantity,
+          memo,
+          is_tradeable,
+          owner_id,
+          catalog_items (name, series, manufacturer),
+          profiles:owner_id (id, display_name, rating_avg, trade_count, phone_verified)
+        `)
+                .eq("id", id)
+                .single();
+
+            if (data && !error) {
+                setItem(data as unknown as ItemData);
+            }
+            setLoading(false);
+        }
+        fetchItem();
+    }, [id, supabase]);
+
+    if (loading) {
+        return (
+            <div className="bg-background min-h-screen flex items-center justify-center">
+                <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    if (!item) {
+        return (
+            <div className="bg-background min-h-screen flex items-center justify-center p-4">
+                <div className="text-center space-y-4">
+                    <p className="text-4xl">😢</p>
+                    <p className="font-bold text-muted">アイテムが見つかりません</p>
+                    <Link href="/" className="btn btn-primary px-6 py-3 inline-flex">
+                        ホームに戻る
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    const isOwner = user?.id === item.owner_id;
 
     return (
         <div className="bg-background min-h-screen pb-28 sm:pb-8">
@@ -68,8 +120,8 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                 <div className="space-y-3 animate-fade-in">
                     <div className="aspect-square bg-surface rounded-[20px] overflow-hidden border border-border sm:shadow-md">
                         <img
-                            src={item.images[selectedImage]}
-                            alt={item.name}
+                            src={item.images[selectedImage] || "/placeholder.png"}
+                            alt={item.catalog_items?.name}
                             className="w-full h-full object-cover transition-opacity duration-300"
                         />
                     </div>
@@ -79,11 +131,11 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                                 key={i}
                                 onClick={() => setSelectedImage(i)}
                                 className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${selectedImage === i
-                                        ? "border-primary shadow-md scale-[1.02]"
-                                        : "border-border hover:border-muted"
+                                    ? "border-primary shadow-md scale-[1.02]"
+                                    : "border-border hover:border-muted"
                                     }`}
                             >
-                                <img src={img} alt={`${item.name} ${i + 1}`} className="w-full h-full object-cover" />
+                                <img src={img} alt={`${item.catalog_items?.name} ${i + 1}`} className="w-full h-full object-cover" />
                             </button>
                         ))}
                     </div>
@@ -95,15 +147,20 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                     <div className="card p-5 space-y-4">
                         <div className="flex items-start justify-between">
                             <div className="flex-1">
-                                <h1 className="text-xl font-black mb-2 leading-tight">{item.name}</h1>
+                                <h1 className="text-xl font-black mb-2 leading-tight">{item.catalog_items?.name}</h1>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className={`badge ${item.condition === "未開封" ? "bg-accent text-white" : "bg-foreground/70 text-white"
+                                    <span className={`badge ${item.condition === "未開封" ? "bg-accent text-white" : item.condition === "傷あり" ? "bg-warning text-white" : "bg-foreground/70 text-white"
                                         }`}>
                                         {item.condition}
                                     </span>
                                     <span className="badge bg-background text-muted">
-                                        {item.manufacturer} / {item.series}
+                                        {item.catalog_items?.manufacturer} / {item.catalog_items?.series}
                                     </span>
+                                    {item.quantity > 1 && (
+                                        <span className="badge bg-primary-light text-primary">
+                                            ×{item.quantity}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                             <button
@@ -115,18 +172,12 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                             </button>
                         </div>
 
-                        {/* Watch count badge */}
-                        <div className="flex items-center gap-4 text-sm">
-                            <div className="flex items-center gap-1.5 text-muted">
-                                <Eye className="h-4 w-4" />
-                                <span><strong className="text-foreground">{item.watchCount}人</strong>が注目中</span>
+                        {item.memo && (
+                            <div className="border-t border-border pt-4">
+                                <h2 className="text-xs font-bold text-muted uppercase mb-2 tracking-wider">商品の説明</h2>
+                                <p className="text-sm whitespace-pre-wrap leading-relaxed">{item.memo}</p>
                             </div>
-                        </div>
-
-                        <div className="border-t border-border pt-4">
-                            <h2 className="text-xs font-bold text-muted uppercase mb-2 tracking-wider">商品の説明</h2>
-                            <p className="text-sm whitespace-pre-wrap leading-relaxed">{item.description}</p>
-                        </div>
+                        )}
                     </div>
 
                     {/* X Share Card */}
@@ -141,10 +192,10 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                             </div>
                             <button
                                 onClick={() => shareOnX({
-                                    itemName: item.name,
+                                    itemName: item.catalog_items?.name || "",
                                     condition: item.condition,
-                                    series: item.series,
-                                    manufacturer: item.manufacturer,
+                                    series: item.catalog_items?.series,
+                                    manufacturer: item.catalog_items?.manufacturer,
                                     itemId: item.id,
                                 })}
                                 className="btn bg-white text-foreground hover:bg-white/90 text-xs px-4 py-2"
@@ -157,69 +208,81 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                     {/* User Section */}
                     <div className="card p-5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <img src={item.user.avatar} alt={item.user.name} className="w-12 h-12 rounded-2xl border border-border" />
+                            <div className="w-12 h-12 rounded-2xl border border-border bg-primary flex items-center justify-center text-white font-bold text-lg">
+                                {(item.profiles?.display_name || "?")[0]}
+                            </div>
                             <div>
                                 <div className="flex items-center gap-1 font-bold">
-                                    {item.user.name}
-                                    {item.user.smsVerified && <ShieldCheck className="h-4 w-4 text-accent" />}
+                                    {item.profiles?.display_name || "ユーザー"}
+                                    {item.profiles?.phone_verified && <ShieldCheck className="h-4 w-4 text-accent" />}
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-muted">
                                     <div className="flex items-center gap-0.5">
                                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                        <span className="font-bold text-foreground">{item.user.rating}</span>
+                                        <span className="font-bold text-foreground">{item.profiles?.rating_avg || 0}</span>
                                     </div>
-                                    <span>取引 {item.user.trade_count}回</span>
+                                    <span>取引 {item.profiles?.trade_count || 0}回</span>
                                 </div>
                             </div>
                         </div>
-                        <Link href={`/user/${item.user.id}`} className="text-sm text-primary font-bold hover:underline">
+                        <Link href={`/user/${item.owner_id}`} className="text-sm text-primary font-bold hover:underline">
                             一覧 →
                         </Link>
                     </div>
 
                     {/* Desktop Action Buttons */}
-                    <div className="hidden sm:flex gap-3">
-                        <button className="btn btn-primary flex-1 py-4 text-base">
+                    {!isOwner && item.is_tradeable && (
+                        <div className="hidden sm:flex gap-3">
+                            <button
+                                onClick={() => router.push(`/trade/propose?itemId=${item.id}`)}
+                                className="btn btn-primary flex-1 py-4 text-base"
+                            >
+                                <MessageCircle className="h-5 w-5" />
+                                交換を提案する
+                            </button>
+                            <button
+                                onClick={() => shareOnX({
+                                    itemName: item.catalog_items?.name || "",
+                                    condition: item.condition,
+                                    series: item.catalog_items?.series,
+                                    manufacturer: item.catalog_items?.manufacturer,
+                                    itemId: item.id,
+                                })}
+                                className="btn btn-x px-5 py-4"
+                            >
+                                <XLogo className="h-5 w-5" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Mobile Fixed Action Bar */}
+            {!isOwner && item.is_tradeable && (
+                <div className="sm:hidden fixed bottom-16 left-0 right-0 p-3 glass border-t border-white/20 z-40">
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => router.push(`/trade/propose?itemId=${item.id}`)}
+                            className="btn btn-primary flex-1 py-3.5"
+                        >
                             <MessageCircle className="h-5 w-5" />
                             交換を提案する
                         </button>
                         <button
                             onClick={() => shareOnX({
-                                itemName: item.name,
+                                itemName: item.catalog_items?.name || "",
                                 condition: item.condition,
-                                series: item.series,
-                                manufacturer: item.manufacturer,
+                                series: item.catalog_items?.series,
+                                manufacturer: item.catalog_items?.manufacturer,
                                 itemId: item.id,
                             })}
-                            className="btn btn-x px-5 py-4"
+                            className="btn btn-x px-4 py-3.5"
                         >
                             <XLogo className="h-5 w-5" />
                         </button>
                     </div>
                 </div>
-            </div>
-
-            {/* Mobile Fixed Action Bar */}
-            <div className="sm:hidden fixed bottom-16 left-0 right-0 p-3 glass border-t border-white/20 z-40">
-                <div className="flex gap-2">
-                    <button className="btn btn-primary flex-1 py-3.5">
-                        <MessageCircle className="h-5 w-5" />
-                        交換を提案する
-                    </button>
-                    <button
-                        onClick={() => shareOnX({
-                            itemName: item.name,
-                            condition: item.condition,
-                            series: item.series,
-                            manufacturer: item.manufacturer,
-                            itemId: item.id,
-                        })}
-                        className="btn btn-x px-4 py-3.5"
-                    >
-                        <XLogo className="h-5 w-5" />
-                    </button>
-                </div>
-            </div>
+            )}
         </div>
     );
 }
