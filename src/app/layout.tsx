@@ -1,22 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
 });
 
 export const metadata: Metadata = {
   title: "ガチャトレ | カプセルトイの物々交換サービス",
-  description: "ダブったガチャガチャを安全に交換。送料のみで欲しかったアイテムを手に入れよう。",
+  description: "ダブったガチャガチャを安全に交換。Xでシェアして交換相手を見つけよう！送料のみで欲しかったアイテムが手に入る。",
+  openGraph: {
+    title: "ガチャトレ | カプセルトイの物々交換",
+    description: "ダブったガチャ、シェアして交換しよう！",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ガチャトレ | カプセルトイの物々交換",
+    description: "ダブったガチャ、シェアして交換しよう！",
+  },
 };
 
 export default function RootLayout({
@@ -26,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 sm:pb-0`}>
+      <body className={`${notoSansJP.variable} font-[family-name:var(--font-noto-sans-jp)] antialiased pb-20 sm:pb-0`}>
         <Header />
         <main className="min-h-screen">
           {children}

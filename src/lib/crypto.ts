@@ -1,9 +1,14 @@
 /**
  * 住所情報の暗号化ユーティリティ (AES-256-GCM)
  * Web Crypto API を使用
+ * 
+ * [SECURITY WARNING] 
+ * 必ずサーバーサイド（Server Actions, API Routes, SSR）でのみ実行してください。
+ * クライアントサイドのコンポーネントでインポートしないでください。
  */
 
-const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "dummy-key-for-development-32bytes-long!!";
+// NEXT_PUBLIC_ を外し、サーバーサイドのみで参照可能な環境変数に変更
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "dummy-key-for-development-32bytes-long!!";
 
 // 文字列をUint8Arrayに変換
 const textEncoder = new TextEncoder();

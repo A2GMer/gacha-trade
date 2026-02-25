@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldAlert, CheckCircle, XCircle, AlertTriangle, Users, Package, MessageSquare, ExternalLink } from "lucide-react";
+import { ShieldAlert, CheckCircle, XCircle, AlertTriangle, Users, Package, MessageSquare, ExternalLink, ChevronRight } from "lucide-react";
 
 export default function AdminPage() {
     const [activeTab, setActiveTab] = useState("disputes");

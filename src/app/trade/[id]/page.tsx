@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, Info, Send, Package, MapPin, CheckCircle2, Clock } from "lucide-react";
+import { ChevronLeft, Info, Send, Package, MapPin, CheckCircle2, ArrowRightLeft, Clock, Truck } from "lucide-react";
 import Link from "next/link";
 
 const STEPS = [
-    { id: "PROPOSED", label: "提案中" },
-    { id: "ACCEPTED", label: "成立" },
-    { id: "ADDRESS", label: "住所確定" },
-    { id: "SHIPPING", label: "発送" },
-    { id: "COMPLETED", label: "完了" },
+    { id: "PROPOSED", label: "提案", icon: "📩" },
+    { id: "ACCEPTED", label: "成立", icon: "🤝" },
+    { id: "ADDRESS", label: "住所", icon: "📍" },
+    { id: "SHIPPING", label: "発送", icon: "📦" },
+    { id: "COMPLETED", label: "完了", icon: "✅" },
 ];
 
-export default function TradeRoom({ params }: { params: { id: string } }) {
-    const [status, setStatus] = useState("ADDRESS_LOCKED"); // Mock status
+export default function TradeRoom({ params }: { params: Promise<{ id: string }> }) {
+    const [message, setMessage] = useState("");
+    const currentStepIndex = 3; // Mock: at SHIPPING
 
     const trade = {
         me: {
@@ -23,6 +24,7 @@ export default function TradeRoom({ params }: { params: { id: string } }) {
         },
         partner: {
             name: "たなか",
+            avatar: "https://ui-avatars.com/api/?name=TN&background=E6002D&color=fff&bold=true",
             item: { name: "ピカチュウ (カプセルフィギュア Vol.1)", condition: "未開封", image: "https://images.unsplash.com/photo-1610894517343-c5b1fc9a840b?w=200&h=200&fit=crop" },
             address: "〒987-6543 大阪府大阪市...",
             isShipped: true,
@@ -30,125 +32,138 @@ export default function TradeRoom({ params }: { params: { id: string } }) {
         messages: [
             { sender: "partner", text: "提案ありがとうございます！よろしくお願いいたします。", time: "10:30" },
             { sender: "me", text: "こちらこそ！今日中に発送できるかと思います。", time: "11:15" },
+            { sender: "partner", text: "ありがとうございます！到着楽しみにしてます😄", time: "11:20" },
         ],
     };
 
     return (
         <div className="bg-background min-h-screen flex flex-col">
             {/* Header */}
-            <div className="bg-white sticky top-0 z-40 p-4 border-b border-border flex items-center justify-between shadow-sm">
-                <Link href="/mypage" className="p-1">
+            <div className="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+                <Link href="/mypage" className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
                     <ChevronLeft className="h-6 w-6" />
                 </Link>
-                <div className="text-center">
-                    <h1 className="font-bold text-sm">取引ルーム</h1>
-                    <p className="text-[10px] text-muted">相手: {trade.partner.name}さん</p>
+                <div className="text-center flex items-center gap-2">
+                    <img src={trade.partner.avatar} alt="" className="w-7 h-7 rounded-xl" />
+                    <div className="text-left">
+                        <h1 className="font-bold text-sm leading-none">{trade.partner.name}さん</h1>
+                        <p className="text-[10px] text-muted">との取引</p>
+                    </div>
                 </div>
-                <div className="w-8">
+                <button className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
                     <Info className="h-5 w-5 text-muted" />
-                </div>
+                </button>
             </div>
 
-            {/* Status Bar */}
-            <div className="bg-white px-6 py-4 border-b border-border">
-                <div className="flex justify-between relative">
-                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2"></div>
+            {/* Progress Bar */}
+            <div className="bg-surface px-4 py-4 border-b border-border">
+                <div className="flex items-center justify-between">
                     {STEPS.map((step, i) => (
-                        <div key={step.id} className="relative z-10 flex flex-col items-center gap-1">
-                            <div className={`w-4 h-4 rounded-full border-2 ${i <= 2 ? "bg-primary border-primary" : "bg-white border-border"
-                                }`}>
-                                {i <= 2 && <CheckCircle2 className="h-4 w-4 text-white -mt-0.5 -ml-0.5" />}
+                        <div key={step.id} className="flex items-center gap-0">
+                            <div className="flex flex-col items-center gap-1">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${i <= currentStepIndex
+                                        ? "bg-primary text-white shadow-md"
+                                        : "bg-background text-muted border border-border"
+                                    }`}>
+                                    {i < currentStepIndex ? (
+                                        <CheckCircle2 className="h-4 w-4" />
+                                    ) : (
+                                        <span>{step.icon}</span>
+                                    )}
+                                </div>
+                                <span className={`text-[9px] font-bold ${i <= currentStepIndex ? "text-primary" : "text-muted"
+                                    }`}>{step.label}</span>
                             </div>
-                            <span className={`text-[8px] font-bold ${i <= 2 ? "text-primary" : "text-muted"
-                                }`}>{step.label}</span>
+                            {i < STEPS.length - 1 && (
+                                <div className={`w-4 sm:w-8 h-0.5 rounded mx-0.5 mb-4 ${i < currentStepIndex ? "bg-primary" : "bg-border"
+                                    }`} />
+                            )}
                         </div>
                     ))}
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 max-w-2xl mx-auto w-full">
-                {/* Trade Items Comparison */}
-                <div className="grid grid-cols-2 gap-4 bg-white p-4 card items-center">
-                    <div className="space-y-2 text-center">
-                        <div className="aspect-square rounded-md overflow-hidden border border-border">
-                            <img src={trade.me.item.image} alt="my item" className="w-full h-full object-cover" />
-                        </div>
-                        <p className="text-[10px] font-bold text-muted">あなた</p>
-                        <p className="text-xs font-bold line-clamp-1">{trade.me.item.name}</p>
-                    </div>
-                    <div className="text-center">
-                        <div className="h-px bg-border w-full relative">
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-primary font-bold text-xs">交換</div>
-                        </div>
-                    </div>
-                    <div className="space-y-2 text-center absolute left-[50%] translate-x-4 w-[calc(50%-2rem)]">
-                        <div className="aspect-square rounded-md overflow-hidden border border-border">
-                            <img src={trade.partner.item.image} alt="partner item" className="w-full h-full object-cover" />
-                        </div>
-                        <p className="text-[10px] font-bold text-muted">相手</p>
-                        <p className="text-xs font-bold line-clamp-1">{trade.partner.item.name}</p>
-                    </div>
-                    {/* Overwrite with a better layout side-by-side */}
-                    <div className="col-span-2 grid grid-cols-2 gap-8 items-center pt-2">
-                        {/* Redefining for better look */}
-                    </div>
-                </div>
-
-                {/* Re-implementing Item Comparison for better UI */}
-                <div className="bg-white p-6 card space-y-4">
-                    <h2 className="text-xs font-bold text-muted uppercase flex items-center gap-2">
-                        <Package className="h-4 w-4" /> 交換内容
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-2xl mx-auto w-full">
+                {/* Trade Summary Card */}
+                <div className="card p-5 animate-fade-in-up">
+                    <h2 className="text-xs font-bold text-muted uppercase mb-3 flex items-center gap-1.5 tracking-wider">
+                        <ArrowRightLeft className="h-4 w-4" /> 交換内容
                     </h2>
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
                         <div className="flex-1 text-center">
-                            <img src={trade.me.item.image} className="w-20 h-20 mx-auto rounded-lg border border-border object-cover mb-1" />
-                            <p className="text-[9px] font-bold text-primary">あなた</p>
-                            <p className="text-[10px] truncate">{trade.me.item.name}</p>
+                            <img src={trade.me.item.image} className="w-16 h-16 mx-auto rounded-2xl border border-border object-cover mb-1 shadow-sm" />
+                            <p className="badge bg-primary-light text-primary text-[8px] mx-auto">あなた</p>
+                            <p className="text-[10px] font-bold mt-0.5 truncate">{trade.me.item.name}</p>
                         </div>
-                        <div className="bg-primary/10 text-primary p-2 rounded-full">
-                            <Clock className="h-5 w-5" />
+                        <div className="bg-primary-light text-primary p-2 rounded-full animate-pulse">
+                            <ArrowRightLeft className="h-4 w-4" />
                         </div>
                         <div className="flex-1 text-center">
-                            <img src={trade.partner.item.image} className="w-20 h-20 mx-auto rounded-lg border border-border object-cover mb-1" />
-                            <p className="text-[9px] font-bold text-secondary">相手</p>
-                            <p className="text-[10px] truncate">{trade.partner.item.name}</p>
+                            <img src={trade.partner.item.image} className="w-16 h-16 mx-auto rounded-2xl border border-border object-cover mb-1 shadow-sm" />
+                            <p className="badge bg-secondary-light text-secondary text-[8px] mx-auto">相手</p>
+                            <p className="text-[10px] font-bold mt-0.5 truncate">{trade.partner.item.name}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Address & Actions */}
-                <div className="bg-white p-6 card space-y-4">
-                    <h2 className="text-xs font-bold text-muted uppercase flex items-center gap-2">
-                        <MapPin className="h-4 w-4" /> お届け先情報
+                {/* Shipping Status Card */}
+                <div className="card p-5 space-y-4 animate-fade-in-up delay-1">
+                    <h2 className="text-xs font-bold text-muted uppercase flex items-center gap-1.5 tracking-wider">
+                        <Truck className="h-4 w-4" /> 発送状況
                     </h2>
-                    <div className="bg-background p-4 rounded-lg space-y-3">
-                        <div>
-                            <p className="text-[10px] text-muted">相手のお届け先</p>
-                            <p className="text-sm font-medium">{trade.partner.address}</p>
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-background rounded-2xl">
+                            <div className="flex items-center gap-2">
+                                <img src={trade.partner.avatar} alt="" className="w-8 h-8 rounded-xl" />
+                                <div>
+                                    <p className="text-xs font-bold">{trade.partner.name}さん</p>
+                                    <p className="text-[10px] text-muted">相手の発送</p>
+                                </div>
+                            </div>
+                            <span className="badge bg-accent text-white">✓ 発送済み</span>
                         </div>
-                        <div className="border-t border-border pt-2 flex items-center justify-between">
-                            <p className="text-[10px] text-muted">発送状況</p>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${trade.partner.isShipped ? "bg-secondary/10 text-secondary" : "bg-muted/10 text-muted"
-                                }`}>
-                                {trade.partner.isShipped ? "発送済み" : "未発送"}
-                            </span>
+                        <div className="flex items-center justify-between p-3 bg-background rounded-2xl">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xs">自</div>
+                                <div>
+                                    <p className="text-xs font-bold">あなた</p>
+                                    <p className="text-[10px] text-muted">あなたの発送</p>
+                                </div>
+                            </div>
+                            <span className="badge bg-warning text-white">⏳ 未発送</span>
                         </div>
                     </div>
-
-                    <button className="w-full bg-primary text-white font-bold py-3 rounded-lg shadow active:scale-95 transition-all">
+                    <button className="btn btn-primary w-full py-3">
+                        <Truck className="h-4 w-4" />
                         商品の発送を通知する
                     </button>
                 </div>
 
+                {/* Address Card */}
+                <div className="card p-5 space-y-3 animate-fade-in-up delay-2">
+                    <h2 className="text-xs font-bold text-muted uppercase flex items-center gap-1.5 tracking-wider">
+                        <MapPin className="h-4 w-4" /> お届け先
+                    </h2>
+                    <div className="bg-background p-4 rounded-2xl">
+                        <p className="text-[10px] text-muted mb-1">相手のお届け先</p>
+                        <p className="text-sm font-bold">{trade.partner.address}</p>
+                    </div>
+                </div>
+
                 {/* Chat */}
-                <div className="space-y-4">
-                    <h2 className="text-xs font-bold text-muted uppercase px-2">メッセージ</h2>
+                <div className="space-y-3 animate-fade-in-up delay-3">
+                    <h2 className="text-xs font-bold text-muted uppercase px-1 tracking-wider">メッセージ</h2>
                     {trade.messages.map((m, i) => (
                         <div key={i} className={`flex ${m.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${m.sender === 'me' ? 'bg-primary text-white rounded-tr-none' : 'bg-white border border-border rounded-tl-none'
+                            {m.sender !== 'me' && (
+                                <img src={trade.partner.avatar} alt="" className="w-7 h-7 rounded-xl mr-2 mt-1 shrink-0" />
+                            )}
+                            <div className={`max-w-[75%] p-3 text-sm leading-relaxed ${m.sender === 'me'
+                                    ? 'bg-primary text-white rounded-[20px] rounded-tr-md'
+                                    : 'bg-surface border border-border rounded-[20px] rounded-tl-md'
                                 }`}>
                                 {m.text}
-                                <p className={`text-[8px] mt-1 ${m.sender === 'me' ? 'text-white/70 text-right' : 'text-muted'}`}>
+                                <p className={`text-[9px] mt-1 ${m.sender === 'me' ? 'text-white/50 text-right' : 'text-muted'}`}>
                                     {m.time}
                                 </p>
                             </div>
@@ -158,15 +173,17 @@ export default function TradeRoom({ params }: { params: { id: string } }) {
             </div>
 
             {/* Message Input */}
-            <div className="bg-white p-4 border-t border-border pb-10 sm:pb-4 shadow-lg">
-                <div className="flex gap-2">
+            <div className="glass border-t border-white/20 p-3 pb-[env(safe-area-inset-bottom,12px)] sm:pb-3">
+                <div className="flex gap-2 max-w-2xl mx-auto">
                     <input
                         type="text"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
                         placeholder="メッセージを入力..."
-                        className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                        className="flex-1 bg-background border border-border rounded-full px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                     />
-                    <button className="bg-primary text-white p-2 rounded-full">
-                        <Send className="h-5 w-5" />
+                    <button className="btn btn-primary p-3 shrink-0">
+                        <Send className="h-4 w-4" />
                     </button>
                 </div>
             </div>

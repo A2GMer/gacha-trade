@@ -1,28 +1,77 @@
 @import "tailwindcss";
 
+/* ===== Design System: ガチャトレ ===== */
+/* Red-based, Light mode, Pop & Premium */
+
 :root {
-  --background: #f5f5f5;
-  --foreground: #333333;
-  --primary: #eb0000;
-  --primary-foreground: #ffffff;
-  --secondary: #2d8cff;
-  --secondary-foreground: #ffffff;
-  --muted: #888888;
-  --border: #e5e5e5;
+  /* Primary: Vibrant Red */
+  --primary: #e6002d;
+  --primary-hover: #cc0028;
+  --primary-light: #fff0f3;
+  --primary-glow: rgba(230, 0, 45, 0.25);
+
+  /* Secondary: Warm coral-orange to complement red */
+  --secondary: #ff6b6b;
+  --secondary-light: #fff5f5;
+
+  /* Accent: Fresh teal for contrast */
+  --accent: #00c9a7;
+  --accent-light: #e6faf6;
+
+  /* X / Twitter */
+  --x-black: #000000;
+  --x-hover: #1a1a1a;
+
+  /* Neutrals */
+  --background: #fafafa;
+  --surface: #ffffff;
+  --foreground: #1a1a1a;
+  --muted: #8c8c8c;
+  --muted-light: #b3b3b3;
+  --border: #eeeeee;
+  --border-strong: #dddddd;
+
+  /* Semantic */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 20px var(--primary-glow);
+
+  /* Radius */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
 }
 
 @theme inline {
   --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
   --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  
+  --color-secondary-light: var(--secondary-light);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-x-black: var(--x-black);
+  --color-x-hover: var(--x-hover);
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-light: var(--muted-light);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
 }
 
+/* ===== Base ===== */
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -30,22 +79,253 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ===== Card ===== */
 .card {
-  background-color: white;
-  border-radius: 8px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.96);
 }
 
 .btn-primary {
-  background-color: var(--primary);
+  background: var(--primary);
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-weight: bold;
-  transition: opacity 0.2s;
+  padding: 0.75rem 1.5rem;
+  box-shadow: var(--shadow-glow);
 }
 
 .btn-primary:hover {
-  opacity: 0.8;
+  background: var(--primary-hover);
+  box-shadow: 0 0 30px var(--primary-glow);
+}
+
+.btn-x {
+  background: var(--x-black);
+  color: white;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+.btn-x:hover {
+  background: var(--x-hover);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--border-strong);
+  color: var(--foreground);
+  padding: 0.625rem 1.25rem;
+}
+
+.btn-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* ===== Badge ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+/* ===== Toggle switch ===== */
+.toggle {
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: white;
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+}
+
+.toggle.active {
+  background: var(--primary);
+}
+
+.toggle.active::after {
+  transform: translateX(1.25rem);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 8px var(--primary-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 24px var(--primary-glow);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out both;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out both;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.4s ease-out both;
+}
+
+/* Staggered delays */
+.delay-1 {
+  animation-delay: 0.05s;
+}
+
+.delay-2 {
+  animation-delay: 0.1s;
+}
+
+.delay-3 {
+  animation-delay: 0.15s;
+}
+
+.delay-4 {
+  animation-delay: 0.2s;
+}
+
+.delay-5 {
+  animation-delay: 0.25s;
+}
+
+.delay-6 {
+  animation-delay: 0.3s;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  animation: fadeInUp 0.3s ease-out, fadeIn 0.3s ease-out reverse 2.5s forwards;
+}
+
+/* ===== Gradient helpers ===== */
+.gradient-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.gradient-hero-soft {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 50%, var(--accent-light) 100%);
 }
