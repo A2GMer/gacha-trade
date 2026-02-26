@@ -7,23 +7,24 @@ import {
     ChevronRight,
     Package,
     Heart,
-    History,
     LogOut,
     Layers,
     ArrowRightLeft,
     Settings,
     HelpCircle,
     Camera,
-    User,
     Eye,
+    MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { ProfileSettings } from "@/components/settings/ProfileSettings";
 
 interface UserProfile {
     display_name: string;
+    avatar_url: string | null;
     rating_avg: number;
     trade_count: number;
     phone_verified: boolean;
@@ -41,6 +42,7 @@ export default function MyPage() {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [stats, setStats] = useState<ItemStats>({ total: 0, tradeable: 0 });
     const [loading, setLoading] = useState(true);
+    const [showSettings, setShowSettings] = useState(false);
 
     useEffect(() => {
         if (!user) return;
@@ -48,7 +50,7 @@ export default function MyPage() {
             const [profRes, itemsRes] = await Promise.all([
                 supabase
                     .from("profiles")
-                    .select("display_name, rating_avg, trade_count, phone_verified")
+                    .select("display_name, avatar_url, rating_avg, trade_count, phone_verified")
                     .eq("id", user!.id)
                     .single(),
                 supabase
@@ -106,6 +108,7 @@ export default function MyPage() {
 
     const subMenuItems = [
         { href: "/trade/proposals", icon: Package, label: "提案一覧" },
+        { href: "/contact", icon: MessageSquare, label: "お問い合わせ" },
         { href: "/help", icon: HelpCircle, label: "ヘルプ・ガイド" },
     ];
 
@@ -116,8 +119,12 @@ export default function MyPage() {
                 <div className="absolute inset-0 bg-black/10" />
                 <div className="relative z-10 container mx-auto max-w-2xl">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-[20px] border-2 border-white/30 shadow-lg bg-white/20 flex items-center justify-center text-2xl font-black shrink-0">
-                            {(profile?.display_name || "?")[0]}
+                        <div className="w-16 h-16 rounded-full border-2 border-white/30 shadow-lg bg-white/20 flex items-center justify-center text-2xl font-black shrink-0 overflow-hidden">
+                            {profile?.avatar_url ? (
+                                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                (profile?.display_name || "?")[0]
+                            )}
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 text-lg font-black">
@@ -134,6 +141,12 @@ export default function MyPage() {
                                 <span>取引 {profile?.trade_count || 0}回</span>
                             </div>
                         </div>
+                        <button
+                            onClick={() => setShowSettings(true)}
+                            className="p-2 rounded-xl bg-white/15 hover:bg-white/25 transition-colors"
+                        >
+                            <Settings className="h-5 w-5" />
+                        </button>
                     </div>
 
                     {/* Quick Stats */}
@@ -149,22 +162,24 @@ export default function MyPage() {
                     </div>
 
                     {!profile?.phone_verified && (
-                        <div className="mt-4 bg-white/15 rounded-2xl p-3 backdrop-blur-sm">
+                        <button
+                            onClick={() => { setShowSettings(true); }}
+                            className="mt-4 w-full bg-white/15 rounded-2xl p-3 backdrop-blur-sm text-left hover:bg-white/25 transition-colors"
+                        >
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className="h-4 w-4 text-yellow-300" />
                                 <p className="text-xs font-bold">本人確認がまだ完了していません</p>
                             </div>
                             <p className="text-[10px] text-white/70 mt-0.5 ml-6">
-                                電話番号を認証すると、取引相手からの信頼度が向上します
+                                タップして電話番号を認証 →
                             </p>
-                        </div>
+                        </button>
                     )}
                 </div>
             </div>
 
             {/* Menu */}
             <div className="container mx-auto max-w-2xl px-4 -mt-6 relative z-20 space-y-3">
-                {/* Main Menu */}
                 <div className="card overflow-hidden">
                     {menuItems.map((item, i) => (
                         <Link
@@ -185,7 +200,6 @@ export default function MyPage() {
                     ))}
                 </div>
 
-                {/* Sub Menu */}
                 <div className="card overflow-hidden">
                     {subMenuItems.map((item, i) => (
                         <Link
@@ -201,7 +215,6 @@ export default function MyPage() {
                     ))}
                 </div>
 
-                {/* Sign Out */}
                 <button
                     onClick={handleSignOut}
                     className="card w-full flex items-center gap-3 px-4 py-3.5 hover:bg-danger/5 transition-colors"
@@ -210,6 +223,11 @@ export default function MyPage() {
                     <span className="text-sm font-medium text-danger">ログアウト</span>
                 </button>
             </div>
+
+            {/* Settings Modal */}
+            {showSettings && (
+                <ProfileSettings onClose={() => { setShowSettings(false); router.refresh(); }} />
+            )}
         </div>
     );
 }

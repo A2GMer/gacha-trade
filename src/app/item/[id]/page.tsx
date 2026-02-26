@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Star, ShieldCheck, Flag, Ban, ChevronLeft, MessageCircle, Heart, Edit } from "lucide-react";
+import { ReportBlockModal } from "@/components/safety/ReportBlockModal";
 import { shareOnX } from "@/lib/share";
 import { useState, useEffect, use } from "react";
 import { createClient } from "@/lib/supabase";
@@ -42,6 +43,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
     const [item, setItem] = useState<ItemData | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(0);
+    const [showReport, setShowReport] = useState(false);
 
     useEffect(() => {
         async function fetchItem() {
@@ -113,14 +115,9 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                     <ChevronLeft className="h-6 w-6" />
                 </Link>
                 {!isOwner && (
-                    <div className="flex gap-2">
-                        <button className="p-2 hover:bg-primary-light rounded-2xl transition-colors">
-                            <Flag className="h-5 w-5 text-muted" />
-                        </button>
-                        <button className="p-2 hover:bg-primary-light rounded-2xl transition-colors">
-                            <Ban className="h-5 w-5 text-muted" />
-                        </button>
-                    </div>
+                    <button onClick={() => setShowReport(true)} className="p-2 hover:bg-primary-light rounded-2xl transition-colors">
+                        <Flag className="h-5 w-5 text-muted" />
+                    </button>
                 )}
             </div>
 
@@ -142,8 +139,8 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                                 key={i}
                                 onClick={() => setSelectedImage(i)}
                                 className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${selectedImage === i
-                                        ? "border-primary shadow-md scale-[1.02]"
-                                        : "border-border hover:border-muted"
+                                    ? "border-primary shadow-md scale-[1.02]"
+                                    : "border-border hover:border-muted"
                                     }`}
                             >
                                 <img src={img} alt={`写真 ${i + 1}枚目`} loading="lazy" className="w-full h-full object-cover" />
@@ -160,8 +157,8 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                             <h1 className="text-xl font-black mb-2 leading-tight">{item.catalog_items?.name}</h1>
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className={`badge ${item.condition === "未開封" ? "bg-accent text-white" :
-                                        item.condition === "傷あり" ? "bg-warning text-white" :
-                                            "bg-foreground/70 text-white"
+                                    item.condition === "傷あり" ? "bg-warning text-white" :
+                                        "bg-foreground/70 text-white"
                                     }`}>
                                     {item.condition}
                                 </span>
@@ -313,6 +310,14 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                     )}
                 </div>
             </div>
+            {showReport && item && (
+                <ReportBlockModal
+                    targetType="user"
+                    targetId={item.owner_id}
+                    targetName={item.profiles?.display_name}
+                    onClose={() => setShowReport(false)}
+                />
+            )}
         </div>
     );
 }

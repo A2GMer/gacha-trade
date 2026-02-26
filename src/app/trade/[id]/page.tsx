@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
-import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, Star, AlertTriangle, PackageCheck, Camera, X } from "lucide-react";
+import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, Star, AlertTriangle, PackageCheck, Camera, X, Hash } from "lucide-react";
 import Link from "next/link";
 import { ShippingGuide } from "@/components/trade/ShippingGuide";
+import { ReviewModal } from "@/components/trade/ReviewModal";
+import { lookupPostalCode } from "@/lib/postal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 
@@ -85,6 +87,12 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     const [inspectionResult, setInspectionResult] = useState<"match" | "mismatch" | null>(null);
     const [disputeReason, setDisputeReason] = useState("");
     const [filingDispute, setFilingDispute] = useState(false);
+
+    // 追跡番号
+    const [trackingNumber, setTrackingNumber] = useState("");
+
+    // レビュー
+    const [showReview, setShowReview] = useState(false);
 
     useEffect(() => {
         if (!user) return;
@@ -434,9 +442,23 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                                     </div>
 
                                     {!myShipped ? (
-                                        <button onClick={markAsShipped} className="btn bg-accent text-white hover:bg-accent/90 w-full py-3">
-                                            <Truck className="h-4 w-4" /> 商品を発送した
-                                        </button>
+                                        <div className="space-y-2">
+                                            <div>
+                                                <label className="text-xs font-bold text-muted mb-1 block flex items-center gap-1">
+                                                    <Hash className="h-3 w-3" /> 追跡番号（任意）
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={trackingNumber}
+                                                    onChange={(e) => setTrackingNumber(e.target.value)}
+                                                    placeholder="追跡番号を入力（任意）"
+                                                    className="w-full bg-background border border-border rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                                                />
+                                            </div>
+                                            <button onClick={markAsShipped} className="btn bg-accent text-white hover:bg-accent/90 w-full py-3">
+                                                <Truck className="h-4 w-4" /> 商品を発送した
+                                            </button>
+                                        </div>
                                     ) : (
                                         <div className="text-center p-3 bg-accent/10 rounded-xl text-accent text-sm font-bold">
                                             ✅ 発送通知済み
@@ -649,6 +671,27 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                         </button>
                     </div>
                 </div>
+            )}
+            {/* Review Modal */}
+            {trade.status === "COMPLETED" && (
+                <div className="glass border-t border-white/20 p-3 pb-[env(safe-area-inset-bottom,12px)] sm:pb-3">
+                    <button
+                        onClick={() => setShowReview(true)}
+                        className="btn btn-primary w-full py-3 max-w-2xl mx-auto"
+                    >
+                        <Star className="h-4 w-4" /> 取引相手を評価する
+                    </button>
+                </div>
+            )}
+
+            {showReview && trade && partner && (
+                <ReviewModal
+                    tradeId={trade.id}
+                    targetUserId={isProposer ? trade.receiver_id : trade.proposer_id}
+                    targetUserName={partner.display_name || "相手"}
+                    onClose={() => setShowReview(false)}
+                    onComplete={() => setShowReview(false)}
+                />
             )}
         </div>
     );
