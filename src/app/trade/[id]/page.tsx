@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
-import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, Star, AlertTriangle, PackageCheck } from "lucide-react";
+import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, Star, AlertTriangle, PackageCheck, Camera, X } from "lucide-react";
 import Link from "next/link";
+import { ShippingGuide } from "@/components/trade/ShippingGuide";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 
@@ -78,6 +79,12 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     const [loading, setLoading] = useState(true);
     const [sendingMessage, setSendingMessage] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // 検品フロー
+    const [showInspection, setShowInspection] = useState(false);
+    const [inspectionResult, setInspectionResult] = useState<"match" | "mismatch" | null>(null);
+    const [disputeReason, setDisputeReason] = useState("");
+    const [filingDispute, setFilingDispute] = useState(false);
 
     useEffect(() => {
         if (!user) return;
@@ -228,7 +235,24 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         const { error } = await supabase.from("trades").update(updatePayload).eq("id", id);
         if (!error) {
             setTrade({ ...trade, ...updatePayload });
+            setShowInspection(false);
+            setInspectionResult(null);
         }
+    };
+
+    const fileDispute = async () => {
+        if (!trade || !user || !disputeReason.trim()) return;
+        setFilingDispute(true);
+        await supabase.from("disputes").insert({
+            trade_id: trade.id,
+            reporter_id: user.id,
+            reason: disputeReason.trim(),
+            status: "OPEN",
+        });
+        await supabase.from("trades").update({ status: "DISPUTE", updated_at: new Date().toISOString() }).eq("id", id);
+        setTrade({ ...trade, status: "DISPUTE" });
+        setShowInspection(false);
+        setFilingDispute(false);
     };
 
 
@@ -427,6 +451,11 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                                 </div>
                             )
                         )}
+
+                        {/* 推奨発送方法 */}
+                        {myAddress && partnerAddress && (
+                            <ShippingGuide />
+                        )}
                     </div>
                 )}
 
@@ -435,15 +464,108 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     <div className="card p-5 space-y-3 animate-fade-in-up delay-2 border-primary/20 border-2">
                         {myShipped && partnerShipped ? (
                             !myReceived ? (
-                                <>
-                                    <h2 className="text-xs font-bold text-primary uppercase flex items-center gap-1.5 tracking-wider">
-                                        📦 相手からの到着待ち
-                                    </h2>
-                                    <p className="text-sm text-muted">商品が届き、中身を確認したら「受取完了」を押してください。</p>
-                                    <button onClick={markAsReceived} className="btn btn-primary w-full py-3">
-                                        <PackageCheck className="h-4 w-4" /> 手元に届き、受取完了した
-                                    </button>
-                                </>
+                                !showInspection ? (
+                                    <>
+                                        <h2 className="text-xs font-bold text-primary uppercase flex items-center gap-1.5 tracking-wider">
+                                            📦 相手からの到着待ち
+                                        </h2>
+                                        <p className="text-sm text-muted">商品が届いたら、中身を確認してください。</p>
+                                        <button onClick={() => setShowInspection(true)} className="btn btn-primary w-full py-3">
+                                            <PackageCheck className="h-4 w-4" /> 商品が届きました
+                                        </button>
+                                    </>
+                                ) : (
+                                    /* ===== 検品フロー ===== */
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h2 className="text-xs font-bold text-primary uppercase flex items-center gap-1.5 tracking-wider">
+                                                🔍 アイテム検品
+                                            </h2>
+                                            <button onClick={() => setShowInspection(false)} className="p-1 hover:bg-background rounded-lg">
+                                                <X className="h-4 w-4 text-muted" />
+                                            </button>
+                                        </div>
+
+                                        {/* 期待されるアイテム情報 */}
+                                        <div className="bg-background rounded-xl p-3">
+                                            <p className="text-[10px] text-muted font-bold mb-2">受け取るべきアイテム</p>
+                                            <div className="flex items-center gap-3">
+                                                <img
+                                                    src={partnerItem?.images?.[0] || "/placeholder.png"}
+                                                    alt=""
+                                                    className="w-14 h-14 rounded-xl border border-border object-cover"
+                                                />
+                                                <div>
+                                                    <p className="text-sm font-bold">{partnerItem?.catalog_items?.name}</p>
+                                                    <p className="text-[10px] text-muted">出品時の写真と照合してください</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {!inspectionResult ? (
+                                            <>
+                                                <p className="text-sm text-center font-bold">届いた商品は説明通りですか？</p>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setInspectionResult("match")}
+                                                        className="btn bg-success text-white hover:bg-success/90 flex-1 py-3 gap-1.5"
+                                                    >
+                                                        <CheckCircle2 className="h-4 w-4" />
+                                                        一致する
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setInspectionResult("mismatch")}
+                                                        className="btn bg-danger text-white hover:bg-danger/90 flex-1 py-3 gap-1.5"
+                                                    >
+                                                        <AlertTriangle className="h-4 w-4" />
+                                                        一致しない
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : inspectionResult === "match" ? (
+                                            <>
+                                                <div className="bg-success/10 rounded-xl p-3 text-center">
+                                                    <p className="text-sm font-bold text-success">✅ アイテムが一致しました</p>
+                                                    <p className="text-[10px] text-muted mt-1">受取完了を確定してください</p>
+                                                </div>
+                                                <button onClick={markAsReceived} className="btn btn-primary w-full py-3">
+                                                    <PackageCheck className="h-4 w-4" /> 受取完了を確定する
+                                                </button>
+                                            </>
+                                        ) : (
+                                            /* 不一致 → 紛争提起 */
+                                            <div className="space-y-3">
+                                                <div className="bg-danger/5 rounded-xl p-3">
+                                                    <p className="text-sm font-bold text-danger">⚠️ アイテムが一致しません</p>
+                                                    <p className="text-[10px] text-muted mt-1">問題の内容を記入して報告してください。運営が調査いたします。</p>
+                                                </div>
+                                                <textarea
+                                                    value={disputeReason}
+                                                    onChange={(e) => setDisputeReason(e.target.value)}
+                                                    placeholder="どのように異なっていたか詳しく記入してください..."
+                                                    rows={3}
+                                                    className="w-full bg-background border border-border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-danger/20 focus:border-danger/30 resize-none"
+                                                />
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => { setInspectionResult(null); setDisputeReason(""); }}
+                                                        className="btn bg-surface text-muted border border-border flex-1 py-3"
+                                                    >
+                                                        戻る
+                                                    </button>
+                                                    <button
+                                                        onClick={fileDispute}
+                                                        disabled={filingDispute || !disputeReason.trim()}
+                                                        className="btn bg-danger text-white hover:bg-danger/90 flex-1 py-3 gap-1.5 disabled:opacity-50"
+                                                    >
+                                                        <AlertTriangle className="h-4 w-4" />
+                                                        {filingDispute ? "送信中..." : "問題を報告する"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )
                             ) : (
                                 <>
                                     <div className="text-center p-3 bg-primary/10 rounded-xl text-primary text-sm font-bold">
