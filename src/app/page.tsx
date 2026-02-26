@@ -61,8 +61,46 @@ export default function Home() {
     fetchItems();
   }, [supabase]);
 
+  // JSON-LD 構造化データ
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://gacha-trade.com/#website",
+        "url": "https://gacha-trade.com",
+        "name": "ガチャトレード",
+        "description": "カプセルトイ（ガチャガチャ）の物々交換プラットフォーム",
+        "inLanguage": "ja",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://gacha-trade.com/search?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://gacha-trade.com/#organization",
+        "name": "ガチャトレード",
+        "url": "https://gacha-trade.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://gacha-trade.com/logo.webp"
+        }
+      }
+    ]
+  };
+
   return (
     <div className="bg-background min-h-screen">
+      {/* JSON-LD 構造化データ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ===== Hero Banner ===== */}
       <div className="gradient-hero text-white px-4 py-10 sm:py-16 relative overflow-hidden">
         <div className="absolute top-4 right-8 w-20 h-20 bg-white/10 rounded-full blur-xl" />
@@ -147,7 +185,10 @@ export default function Home() {
                     <div className="relative aspect-square">
                       <img
                         src={item.images?.[0] || "/placeholder.png"}
-                        alt={item.catalog_items?.name || "アイテム"}
+                        alt={`${item.catalog_items?.name || "カプセルトイ"} - ${item.catalog_items?.series || ""} ${item.condition} | ガチャトレード`}
+                        loading="lazy"
+                        width={300}
+                        height={300}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       {item.trade_status === "TRADING" && (

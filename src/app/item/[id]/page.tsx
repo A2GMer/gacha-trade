@@ -98,8 +98,34 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
 
     const isOwner = user?.id === item.owner_id;
 
+    // Product構造化データ (JSON-LD)
+    const productJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": item.catalog_items?.name || "カプセルトイ",
+        "description": `${item.catalog_items?.series || ""} ${item.catalog_items?.manufacturer || ""} - ${item.condition}`,
+        "image": item.images,
+        "brand": {
+            "@type": "Brand",
+            "name": item.catalog_items?.manufacturer || "不明"
+        },
+        "offers": {
+            "@type": "Offer",
+            "availability": item.is_tradeable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "priceCurrency": "JPY",
+            "price": "0",
+            "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            "itemCondition": item.condition === "未開封" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition"
+        }
+    };
+
     return (
         <div className="bg-background min-h-screen pb-28 sm:pb-8">
+            {/* JSON-LD 構造化データ */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+            />
             {/* Mobile Top Header */}
             <div className="sm:hidden sticky top-0 glass z-40 px-4 py-3 flex items-center justify-between">
                 <Link href="/" className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
@@ -121,7 +147,9 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                     <div className="aspect-square bg-surface rounded-[20px] overflow-hidden border border-border sm:shadow-md">
                         <img
                             src={item.images[selectedImage] || "/placeholder.png"}
-                            alt={item.catalog_items?.name}
+                            alt={`${item.catalog_items?.name || "カプセルトイ"} - ${item.catalog_items?.series || ""} ${item.condition} | ガチャトレード`}
+                            width={600}
+                            height={600}
                             className="w-full h-full object-cover transition-opacity duration-300"
                         />
                     </div>
@@ -135,7 +163,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                                     : "border-border hover:border-muted"
                                     }`}
                             >
-                                <img src={img} alt={`${item.catalog_items?.name} ${i + 1}`} className="w-full h-full object-cover" />
+                                <img src={img} alt={`${item.catalog_items?.name || "カプセルトイ"} の写真 ${i + 1}枚目`} loading="lazy" className="w-full h-full object-cover" />
                             </button>
                         ))}
                     </div>

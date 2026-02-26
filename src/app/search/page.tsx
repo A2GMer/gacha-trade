@@ -175,7 +175,7 @@ export default function SearchPage() {
                                     <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
                                         <div className="card group">
                                             <div className="relative aspect-square">
-                                                <img src={item.images?.[0] || "/placeholder.png"} alt={item.catalog_items?.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                <img src={item.images?.[0] || "/placeholder.png"} alt={`${item.catalog_items?.name || "カプセルトイ"} - ${item.catalog_items?.series || ""} ${item.condition} | ガチャトレード`} loading="lazy" width={300} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                                 {item.trade_status === "TRADING" && (
                                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
                                                         <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">取引中</span>
