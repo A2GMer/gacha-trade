@@ -1,0 +1,12 @@
+{
+    "crons": [
+        {
+            "path": "/api/cron/check-shipment-deadline",
+            "schedule": "0 */6 * * *"
+        },
+        {
+            "path": "/api/catalog/scrape",
+            "schedule": "0 3 * * 1"
+        }
+    ]
+}

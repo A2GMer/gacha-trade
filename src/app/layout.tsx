@@ -12,7 +12,7 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "700", "900"],
 });
 
-const SITE_NAME = "ガチャトレード";
+const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME || "ガチャトレード";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gacha-trade.com";
 const SITE_DESCRIPTION =
   "ダブったカプセルトイ（ガチャガチャ）を安全に物々交換できるサービス。Xでシェアして交換相手を見つけよう！送料のみで欲しかったアイテムが手に入ります。";
