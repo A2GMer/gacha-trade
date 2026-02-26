@@ -205,12 +205,8 @@ export default function MyPage() {
                 {[
                     { label: "交換提案を見る", href: "/trade/proposals" },
                     { label: "プロフィール・住所設定", href: "#" },
-                    { label: "ヘルプ・ガイド", href: "/help" },
-                    { label: "利用規約", href: "/terms" },
-                    { label: "プライバシーポリシー", href: "/privacy" },
-                    { label: "運営者情報", href: "/about" },
-                ].map((item, i) => (
-                    <Link key={i} href={item.href} className="px-5 py-4 flex items-center justify-between hover:bg-background cursor-pointer transition-colors first:rounded-t-[16px]">
+                ].map((item, i, arr) => (
+                    <Link key={i} href={item.href} className={`px-5 py-4 flex items-center justify-between hover:bg-background cursor-pointer transition-colors first:rounded-t-[16px] ${i === arr.length - 1 ? 'rounded-b-[16px]' : ''}`}>
                         <span className="text-sm font-medium">{item.label}</span>
                         <ChevronRight className="h-4 w-4 text-muted-light" />
                     </Link>
