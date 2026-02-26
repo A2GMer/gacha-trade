@@ -139,7 +139,7 @@ export function ImageUploader({ images, onChange, error, maxImages = 4 }: ImageU
             </div>
 
             <p className="text-[10px] text-muted">
-                📌 4枚の写真が必須です。正面・裏面・側面・全体を撮影してください。
+                📌 1枚以上の写真が必須です。商品の状態がよくわかるように撮影してください。
             </p>
         </div>
     );

@@ -58,7 +58,7 @@ export default function SellPage() {
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
-        if (images.length < 4) newErrors.photos = `写真は4枚必須です（現在 ${images.length} 枚）`;
+        if (images.length < 1) newErrors.photos = "写真は1枚以上必須です";
         if (!condition) newErrors.condition = "商品の状態を選択してください";
         if (!catalogItemId) newErrors.catalog = "カタログからアイテムを選択してください";
         setErrors(newErrors);
