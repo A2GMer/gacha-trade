@@ -68,22 +68,36 @@ export default function Home() {
         <div className="absolute top-4 right-8 w-20 h-20 bg-white/10 rounded-full blur-xl" />
         <div className="absolute bottom-2 left-12 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
 
-        <div className="container mx-auto max-w-2xl text-center relative z-10">
-          <h1 className="text-2xl sm:text-4xl font-black mb-3 leading-tight animate-fade-in-up">
-            ダブったガチャ、<br />
-            <span className="text-white/90">Xでシェアして交換しよう！</span>
-          </h1>
-          <p className="text-white/80 text-sm sm:text-base mb-6 animate-fade-in-up delay-1">
-            カプセルトイの物々交換サービス。<br className="sm:hidden" />
-            送料のみで欲しかったアイテムが手に入る 🎯
-          </p>
-          <div className="flex justify-center gap-3 animate-fade-in-up delay-2">
-            <Link href="/sell" className="btn bg-white/20 text-white hover:bg-white/30 px-6 py-3 text-base backdrop-blur-sm border border-white/20">
-              出品する
-            </Link>
-            <Link href="/search" className="btn bg-white/20 text-white hover:bg-white/30 px-6 py-3 text-base backdrop-blur-sm border border-white/20">
-              検索する
-            </Link>
+        <div className="container mx-auto px-4 max-w-5xl relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 leading-tight animate-fade-in-up">
+                ダブったガチャ、<br />
+                <span className="text-white/90">Xでシェアして交換しよう！</span>
+              </h1>
+              <p className="text-white/80 text-sm sm:text-base lg:text-lg mb-8 animate-fade-in-up delay-1 leading-relaxed max-w-xl">
+                カプセルトイの物々交換サービス。<br className="hidden sm:block md:hidden" />
+                送料のみで欲しかったアイテムが手に入る 🎯
+              </p>
+              <div className="flex flex-wrap justify-center md:justify-start gap-4 animate-fade-in-up delay-2">
+                <Link href="/sell" className="btn bg-white text-primary hover:bg-white/90 px-8 py-3.5 text-base font-bold shadow-xl border-none">
+                  出品する
+                </Link>
+                <Link href="/search" className="btn bg-white/20 text-white hover:bg-white/30 px-8 py-3.5 text-base font-bold backdrop-blur-sm border border-white/20">
+                  検索する
+                </Link>
+              </div>
+            </div>
+            <div className="flex-1 w-full max-w-md md:max-w-none animate-fade-in-up delay-3">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700" />
+                <img
+                  src="/hero-illustration.webp"
+                  alt="ガチャガチャ交換"
+                  className="relative z-10 w-full h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-float"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

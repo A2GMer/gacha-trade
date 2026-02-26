@@ -25,13 +25,8 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full glass border-b border-white/20">
       <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-3">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-9 h-9 gradient-hero rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-            <span className="text-white font-black text-lg">G</span>
-          </div>
-          <span className="font-black text-lg hidden sm:block tracking-tight">
-            ガチャトレ
-          </span>
+        <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-[1.02]">
+          <img src="/logo.webp" alt="ガチャトレード" className="h-10 sm:h-12 w-auto object-contain" />
         </Link>
 
         {/* Search Bar */}

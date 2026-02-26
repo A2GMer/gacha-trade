@@ -13,16 +13,16 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "ガチャトレ | カプセルトイの物々交換サービス",
+  title: "ガチャトレード | カプセルトイの物々交換サービス",
   description: "ダブったガチャガチャを安全に交換。Xでシェアして交換相手を見つけよう！送料のみで欲しかったアイテムが手に入る。",
   openGraph: {
-    title: "ガチャトレ | カプセルトイの物々交換",
+    title: "ガチャトレード | カプセルトイの物々交換",
     description: "ダブったガチャ、シェアして交換しよう！",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ガチャトレ | カプセルトイの物々交換",
+    title: "ガチャトレード | カプセルトイの物々交換",
     description: "ダブったガチャ、シェアして交換しよう！",
   },
 };

@@ -22,7 +22,7 @@ export default function AboutPage() {
                     <div className="space-y-4">
                         <div className="grid grid-cols-3 border-b border-border pb-2">
                             <span className="font-bold text-foreground">サービス名</span>
-                            <span className="col-span-2">ガチャトレ</span>
+                            <span className="col-span-2">ガチャトレード</span>
                         </div>
                         <div className="grid grid-cols-3 border-b border-border pb-2">
                             <span className="font-bold text-foreground">運営事業者</span>

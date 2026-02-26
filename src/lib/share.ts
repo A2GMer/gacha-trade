@@ -44,21 +44,21 @@ export function generateItemShareText(params: ShareItemParams): string {
  * コレクション共有用のツイートテキスト
  */
 export function generateCollectionShareText(userName: string, itemCount: number): string {
-    return `🎰 ${userName}のガチャトレコレクション（${itemCount}個）を公開中！\n交換できるアイテムがあるかチェックしてみて👀\n\n`;
+    return `🎰 ${userName}のガチャトレードコレクション（${itemCount}個）を公開中！\n交換できるアイテムがあるかチェックしてみて👀\n\n`;
 }
 
 /**
  * 取引完了共有テキスト
  */
 export function generateTradeCompleteText(myItem: string, partnerItem: string): string {
-    return `✅ ガチャトレで交換成立！\n「${myItem}」↔️「${partnerItem}」\nダブったガチャ、ここなら交換できるよ🎯\n\n`;
+    return `✅ ガチャトレードで交換成立！\n「${myItem}」↔️「${partnerItem}」\nダブったガチャ、ここなら交換できるよ🎯\n\n`;
 }
 
 /**
  * 標準ハッシュタグ
  */
 export function getHashtags(): string[] {
-    return ["ガチャトレ", "ガチャガチャ交換", "カプセルトイ", "ガチャ交換"];
+    return ["ガチャトレード", "ガチャガチャ交換", "カプセルトイ", "ガチャ交換"];
 }
 
 /**

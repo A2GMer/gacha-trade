@@ -85,7 +85,7 @@ export default function LoginPage() {
                         <span className="text-white font-black text-2xl">G</span>
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black">ガチャトレ</h1>
+                        <h1 className="text-2xl font-black">ガチャトレード</h1>
                         <p className="text-sm text-muted mt-1">
                             カプセルトイの物々交換サービス
                         </p>
@@ -97,8 +97,8 @@ export default function LoginPage() {
                     <button
                         onClick={() => { setIsLogin(true); setError(""); }}
                         className={`flex-1 py-2.5 text-sm font-bold rounded-2xl transition-all ${isLogin
-                                ? "bg-white text-foreground shadow-sm"
-                                : "text-muted hover:text-foreground"
+                            ? "bg-white text-foreground shadow-sm"
+                            : "text-muted hover:text-foreground"
                             }`}
                     >
                         ログイン
@@ -106,8 +106,8 @@ export default function LoginPage() {
                     <button
                         onClick={() => { setIsLogin(false); setError(""); }}
                         className={`flex-1 py-2.5 text-sm font-bold rounded-2xl transition-all ${!isLogin
-                                ? "bg-white text-foreground shadow-sm"
-                                : "text-muted hover:text-foreground"
+                            ? "bg-white text-foreground shadow-sm"
+                            : "text-muted hover:text-foreground"
                             }`}
                     >
                         新規登録

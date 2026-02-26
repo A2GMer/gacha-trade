@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
                     </div>
 
                     <section className="space-y-2 text-justify">
-                        <p>プラットフォーム「ガチャトレ」（以下、「当サービス」といいます。）は、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」といいます。）を定めます。</p>
+                        <p>プラットフォーム「ガチャトレード」（以下、「当サービス」といいます。）は、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」といいます。）を定めます。</p>
                     </section>
 
                     <section className="space-y-2 text-justify">
