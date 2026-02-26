@@ -9,6 +9,7 @@ interface SearchResult {
     id: string;
     images: string[];
     condition: string;
+    trade_status?: string;
     catalog_items: {
         name: string;
         series: string;
@@ -58,10 +59,12 @@ export default function SearchPage() {
         id,
         images,
         condition,
+        trade_status,
         catalog_items!inner (name, series, manufacturer),
         profiles:owner_id (display_name, rating_avg, phone_verified)
       `)
             .eq("is_public", true)
+            .neq("trade_status", "COMPLETED")
             .order("created_at", { ascending: false })
             .limit(20);
 
@@ -167,13 +170,18 @@ export default function SearchPage() {
                                 <p className="text-muted font-bold">条件に合うアイテムが見つかりませんでした</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                 {results.map((item, i) => (
                                     <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
                                         <div className="card group">
                                             <div className="relative aspect-square">
                                                 <img src={item.images?.[0] || "/placeholder.png"} alt={item.catalog_items?.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                                <span className={`absolute top-2 left-2 badge ${item.condition === "未開封" ? "bg-accent text-white" :
+                                                {item.trade_status === "TRADING" && (
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                                        <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">取引中</span>
+                                                    </div>
+                                                )}
+                                                <span className={`absolute top-2 left-2 z-20 badge ${item.condition === "未開封" ? "bg-accent text-white" :
                                                     item.condition === "開封済" ? "bg-foreground/70 text-white" : "bg-warning text-white"
                                                     }`}>
                                                     {item.condition}

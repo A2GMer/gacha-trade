@@ -79,6 +79,29 @@ function ProposeContent() {
                 return;
             }
 
+            // 既存の有効な取引をチェック（自分と相手の間）
+            const { data: existingTrades } = await supabase
+                .from("trades")
+                .select("id")
+                .or(`and(proposer_id.eq.${user.id},receiver_id.eq.${targetFull.owner_id}),and(proposer_id.eq.${targetFull.owner_id},receiver_id.eq.${user.id})`)
+                .not("status", "in", "(CANCELLED,COMPLETED)");
+
+            if (existingTrades && existingTrades.length > 0) {
+                const existingTradeId = existingTrades[0].id;
+                // 既に進行中の取引があればそちらに合流（メッセージがあれば送信）
+                if (message.trim()) {
+                    await supabase.from("trade_messages").insert({
+                        trade_id: existingTradeId,
+                        sender_id: user.id,
+                        content: message.trim() + "\n（※別アイテムの交換ページからメッセージを送信しました）",
+                    });
+                }
+                router.push(`/trade/${existingTradeId}`);
+                return;
+            }
+
+            // 既存取引がなければ新規作成
+
             const { data: trade, error: insertError } = await supabase
                 .from("trades")
                 .insert({
@@ -214,8 +237,8 @@ function ProposeContent() {
                                     key={item.id}
                                     onClick={() => setSelectedItemId(item.id)}
                                     className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${selectedItemId === item.id
-                                            ? "border-primary shadow-md ring-2 ring-primary/20"
-                                            : "border-border hover:border-primary/50"
+                                        ? "border-primary shadow-md ring-2 ring-primary/20"
+                                        : "border-border hover:border-primary/50"
                                         }`}
                                 >
                                     <img src={item.images[0]} alt={item.catalog_items?.name} className="w-full h-full object-cover" />

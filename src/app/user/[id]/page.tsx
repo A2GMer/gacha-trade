@@ -16,6 +16,7 @@ interface UserItem {
     id: string;
     images: string[];
     condition: string;
+    trade_status?: string;
     is_tradeable: boolean;
     is_public: boolean;
     catalog_items: { name: string };
@@ -41,7 +42,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
             const { data: userItems } = await supabase
                 .from("user_items")
-                .select("id, images, condition, is_tradeable, is_public, catalog_items (name)")
+                .select("id, images, condition, trade_status, is_tradeable, is_public, catalog_items (name)")
                 .eq("owner_id", id)
                 .eq("is_public", true)
                 .order("created_at", { ascending: false });
@@ -134,12 +135,17 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                         {filteredItems.map((item, i) => (
                             <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
                                 <div className="aspect-square card overflow-hidden relative group">
                                     <img src={item.images?.[0] || "/placeholder.png"} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                    <span className={`absolute top-1 left-1 badge text-[8px] ${item.condition === "未開封" ? "bg-accent text-white" : item.condition === "傷あり" ? "bg-warning text-white" : "bg-foreground/70 text-white"
+                                    {item.trade_status === "TRADING" && (
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                            <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">取引中</span>
+                                        </div>
+                                    )}
+                                    <span className={`absolute top-1 left-1 badge text-[8px] z-20 ${item.condition === "未開封" ? "bg-accent text-white" : item.condition === "傷あり" ? "bg-warning text-white" : "bg-foreground/70 text-white"
                                         }`}>
                                         {item.condition}
                                     </span>

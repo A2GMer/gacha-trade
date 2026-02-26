@@ -26,6 +26,7 @@ interface UserItem {
     id: string;
     images: string[];
     is_tradeable: boolean;
+    trade_status?: string;
     catalog_items: { name: string };
 }
 
@@ -55,7 +56,7 @@ export default function MyPage() {
             // 自分のアイテム取得
             const { data: myItems } = await supabase
                 .from("user_items")
-                .select("id, images, is_tradeable, catalog_items (name)")
+                .select("id, images, is_tradeable, trade_status, catalog_items (name)")
                 .eq("owner_id", user!.id)
                 .order("created_at", { ascending: false });
 
@@ -182,11 +183,16 @@ export default function MyPage() {
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                         {filteredItems.map((item, i) => (
                             <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
                                 <div className="aspect-square card overflow-hidden relative group">
                                     <img src={item.images?.[0] || "/placeholder.png"} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    {item.trade_status === "TRADING" && (
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                            <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">取引中</span>
+                                        </div>
+                                    )}
                                 </div>
                             </Link>
                         ))}
@@ -197,11 +203,14 @@ export default function MyPage() {
             {/* Menu List */}
             <div className="card mx-4 mt-2 divide-y divide-border">
                 {[
-                    { label: "交換提案を見る", href: "/trade/proposals", statusColor: "" },
-                    { label: "カタログ追加申請", href: "#", statusColor: "" },
-                    { label: "ヘルプ・ガイド", href: "#", statusColor: "" },
+                    { label: "交換提案を見る", href: "/trade/proposals" },
+                    { label: "プロフィール・住所設定", href: "#" },
+                    { label: "ヘルプ・ガイド", href: "/help" },
+                    { label: "利用規約", href: "/terms" },
+                    { label: "プライバシーポリシー", href: "/privacy" },
+                    { label: "運営者情報", href: "/about" },
                 ].map((item, i) => (
-                    <Link key={i} href={item.href} className="px-5 py-4 flex items-center justify-between hover:bg-background cursor-pointer transition-colors first:rounded-t-[16px] last:rounded-b-[16px]">
+                    <Link key={i} href={item.href} className="px-5 py-4 flex items-center justify-between hover:bg-background cursor-pointer transition-colors first:rounded-t-[16px]">
                         <span className="text-sm font-medium">{item.label}</span>
                         <ChevronRight className="h-4 w-4 text-muted-light" />
                     </Link>

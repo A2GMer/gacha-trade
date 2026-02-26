@@ -18,6 +18,7 @@ interface ItemWithProfile {
   id: string;
   images: string[];
   condition: string;
+  trade_status?: string;
   catalog_items: {
     name: string;
     series: string;
@@ -43,12 +44,14 @@ export default function Home() {
           id,
           images,
           condition,
+          trade_status,
           catalog_items (name, series, manufacturer),
           profiles:owner_id (display_name, rating_avg, phone_verified)
         `)
         .eq("is_public", true)
+        .neq("trade_status", "COMPLETED")
         .order("created_at", { ascending: false })
-        .limit(12);
+        .limit(15);
 
       if (data && !error) {
         setItems(data as unknown as ItemWithProfile[]);
@@ -122,7 +125,7 @@ export default function Home() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
             {items.map((item, index) => (
               <div key={item.id} className={`animate-fade-in-up delay-${index + 1}`}>
                 <div className="card group">
@@ -133,7 +136,12 @@ export default function Home() {
                         alt={item.catalog_items?.name || "アイテム"}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <div className="absolute top-2 left-2">
+                      {item.trade_status === "TRADING" && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                          <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">取引中</span>
+                        </div>
+                      )}
+                      <div className="absolute top-2 left-2 z-20">
                         <span className={`badge ${item.condition === "未開封" ? "bg-accent text-white" :
                           item.condition === "開封済" ? "bg-foreground/70 text-white" :
                             "bg-warning text-white"
