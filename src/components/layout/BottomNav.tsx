@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, Camera, Bell, User } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase";
 
 const NAV_ITEMS = [
     { href: "/", icon: Home, label: "ホーム" },
@@ -14,12 +17,31 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
     const pathname = usePathname();
+    const { user } = useAuth();
+    const supabase = createClient();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (!user) return;
+        async function fetchUnread() {
+            const { count } = await supabase
+                .from("notifications")
+                .select("id", { count: "exact", head: true })
+                .eq("user_id", user!.id)
+                .eq("is_read", false);
+            setUnreadCount(count || 0);
+        }
+        fetchUnread();
+    }, [user, supabase, pathname]);
 
     return (
         <nav className="sm:hidden fixed bottom-0 left-0 right-0 glass border-t border-white/20 px-2 pt-1 pb-[env(safe-area-inset-bottom,8px)] z-50">
             <div className="flex justify-around items-end">
                 {NAV_ITEMS.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive =
+                        item.href === "/"
+                            ? pathname === "/"
+                            : pathname.startsWith(item.href);
 
                     if (item.isCenter) {
                         return (
@@ -36,16 +58,21 @@ export function BottomNav() {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-colors ${isActive ? "text-primary" : "text-muted hover:text-foreground"
+                            className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-colors relative ${isActive ? "text-primary" : "text-muted hover:text-foreground"
                                 }`}
                         >
-                            <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+                            <div className="relative">
+                                <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+                                {item.href === "/notifications" && unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-danger text-white text-[8px] font-bold min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-0.5">
+                                        {unreadCount > 9 ? "9+" : unreadCount}
+                                    </span>
+                                )}
+                            </div>
                             <span className={`text-[10px] ${isActive ? "font-bold" : "font-medium"}`}>
                                 {item.label}
                             </span>
-                            {isActive && (
-                                <div className="w-1 h-1 bg-primary rounded-full" />
-                            )}
+                            {isActive && <div className="w-1 h-1 bg-primary rounded-full" />}
                         </Link>
                     );
                 })}

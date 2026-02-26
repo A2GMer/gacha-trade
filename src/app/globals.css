@@ -329,3 +329,192 @@ body {
 .gradient-hero-soft {
   background: linear-gradient(135deg, #fff0f3 0%, #fff5f5 50%, #e6faf6 100%);
 }
+
+/* ===== Step Indicator ===== */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.step-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.step-dot.completed {
+  background: var(--accent);
+  color: white;
+}
+
+.step-dot.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow-glow);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.step-dot.pending {
+  background: var(--border);
+  color: var(--muted);
+}
+
+.step-line {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  transition: background 0.3s;
+}
+
+.step-line.completed {
+  background: var(--accent);
+}
+
+/* ===== Quiet UI (for high-tension areas) ===== */
+.quiet-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+}
+
+.quiet-section h3 {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+/* ===== Category Circle ===== */
+.category-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.category-circle .icon-wrap {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: var(--background);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.category-circle:hover .icon-wrap {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.category-circle span {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--foreground);
+  text-align: center;
+  max-width: 5rem;
+  line-clamp: 2;
+}
+
+/* ===== Tab ===== */
+.tab-bar {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+}
+
+.tab-item {
+  flex: 1;
+  padding: 0.75rem 0;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.tab-item:hover {
+  color: var(--foreground);
+}
+
+.tab-item.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+/* ===== Action Bar (sticky bottom) ===== */
+.action-bar {
+  position: fixed;
+  bottom: 4rem;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 1rem;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@media (min-width: 640px) {
+  .action-bar {
+    bottom: 0;
+  }
+}
+
+/* ===== Float animation ===== */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ===== Empty state ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.empty-state .icon {
+  font-size: 2.5rem;
+  opacity: 0.5;
+}
+
+.empty-state .message {
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 0.875rem;
+}

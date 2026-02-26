@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Bell, Menu, LogIn, LogOut, User } from "lucide-react";
+import { Search, Bell, LogIn, LogOut, User, ArrowRightLeft } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const { user, loading, signOut } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
-  // メニュー外クリックで閉じる
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -21,6 +22,15 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const q = formData.get("q") as string;
+    if (q?.trim()) {
+      router.push(`/search?q=${encodeURIComponent(q.trim())}`);
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-white/20">
       <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-3">
@@ -30,14 +40,15 @@ export function Header() {
         </Link>
 
         {/* Search Bar */}
-        <div className="flex-1 max-w-xl relative">
+        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted h-4 w-4" />
           <input
             type="text"
+            name="q"
             placeholder="キーワードで検索..."
             className="w-full bg-background/80 border border-border rounded-full py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all placeholder:text-muted-light"
           />
-        </div>
+        </form>
 
         {/* Icons */}
         <div className="flex items-center gap-1">
@@ -45,6 +56,13 @@ export function Header() {
             <div className="w-9 h-9 rounded-2xl bg-background animate-pulse" />
           ) : user ? (
             <>
+              <Link
+                href="/dashboard"
+                className="hidden sm:flex p-2.5 hover:bg-primary-light rounded-2xl transition-colors"
+                title="取引ダッシュボード"
+              >
+                <ArrowRightLeft className="h-5 w-5 text-foreground" />
+              </Link>
               <Link href="/notifications" className="p-2.5 hover:bg-primary-light rounded-2xl relative transition-colors">
                 <Bell className="h-5 w-5 text-foreground" />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white animate-pulse"></span>
@@ -62,6 +80,13 @@ export function Header() {
                       <p className="text-xs font-bold truncate">{user.user_metadata?.display_name || user.email}</p>
                       <p className="text-[10px] text-muted truncate">{user.email}</p>
                     </div>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setShowMenu(false)}
+                      className="block px-4 py-2.5 text-sm font-medium hover:bg-background transition-colors"
+                    >
+                      取引ダッシュボード
+                    </Link>
                     <Link
                       href="/mypage"
                       onClick={() => setShowMenu(false)}

@@ -1,19 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, ShieldCheck, Star, ChevronRight, Package, Heart, History, MessageSquare, LogOut } from "lucide-react";
+import {
+    ShieldCheck,
+    Star,
+    ChevronRight,
+    Package,
+    Heart,
+    History,
+    LogOut,
+    Layers,
+    ArrowRightLeft,
+    Settings,
+    HelpCircle,
+    Camera,
+    User,
+    Eye,
+} from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-
-function XLogo({ className = "h-4 w-4" }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
-    );
-}
 
 interface UserProfile {
     display_name: string;
@@ -22,70 +29,52 @@ interface UserProfile {
     phone_verified: boolean;
 }
 
-interface UserItem {
-    id: string;
-    images: string[];
-    is_tradeable: boolean;
-    trade_status?: string;
-    catalog_items: { name: string };
+interface ItemStats {
+    total: number;
+    tradeable: number;
 }
 
 export default function MyPage() {
-    const { user, signOut } = useAuth();
+    const { user, loading: authLoading, signOut } = useAuth();
     const supabase = createClient();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState("trading");
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [items, setItems] = useState<UserItem[]>([]);
-    const [activeTrades, setActiveTrades] = useState(0);
+    const [stats, setStats] = useState<ItemStats>({ total: 0, tradeable: 0 });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) return;
-
         async function fetchData() {
-            // プロフィール取得
-            const { data: prof } = await supabase
-                .from("profiles")
-                .select("display_name, rating_avg, trade_count, phone_verified")
-                .eq("id", user!.id)
-                .single();
+            const [profRes, itemsRes] = await Promise.all([
+                supabase
+                    .from("profiles")
+                    .select("display_name, rating_avg, trade_count, phone_verified")
+                    .eq("id", user!.id)
+                    .single(),
+                supabase
+                    .from("user_items")
+                    .select("id, is_tradeable")
+                    .eq("owner_id", user!.id),
+            ]);
 
-            if (prof) setProfile(prof);
-
-            // 自分のアイテム取得
-            const { data: myItems } = await supabase
-                .from("user_items")
-                .select("id, images, is_tradeable, trade_status, catalog_items (name)")
-                .eq("owner_id", user!.id)
-                .order("created_at", { ascending: false });
-
-            if (myItems) setItems(myItems as unknown as UserItem[]);
-
-            // 進行中取引数
-            const { count } = await supabase
-                .from("trades")
-                .select("id", { count: "exact", head: true })
-                .or(`proposer_id.eq.${user!.id},receiver_id.eq.${user!.id}`)
-                .not("status", "in", "(COMPLETED,CANCELLED)");
-
-            setActiveTrades(count || 0);
+            if (profRes.data) setProfile(profRes.data);
+            if (itemsRes.data) {
+                setStats({
+                    total: itemsRes.data.length,
+                    tradeable: itemsRes.data.filter((i) => i.is_tradeable).length,
+                });
+            }
             setLoading(false);
         }
         fetchData();
     }, [user, supabase]);
 
-    const filteredItems = activeTab === "trading"
-        ? items.filter((i) => i.is_tradeable)
-        : items;
-
-    const handleSignOut = async () => {
+    async function handleSignOut() {
         await signOut();
         router.push("/");
-        router.refresh();
-    };
+    }
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="bg-background min-h-screen flex items-center justify-center">
                 <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -93,22 +82,51 @@ export default function MyPage() {
         );
     }
 
+    if (!user) {
+        return (
+            <div className="bg-background min-h-screen flex items-center justify-center p-4">
+                <div className="text-center space-y-4">
+                    <p className="text-4xl">🔒</p>
+                    <p className="font-bold text-muted">ログインが必要です</p>
+                    <Link href="/login" className="btn btn-primary px-6 py-3 inline-flex">
+                        ログインする
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    const menuItems = [
+        { href: "/dashboard", icon: ArrowRightLeft, label: "取引ダッシュボード", color: "text-primary", bg: "bg-primary-light" },
+        { href: "/collection", icon: Layers, label: "コレクション", badge: `${stats.total}件`, color: "text-accent", bg: "bg-accent-light" },
+        { href: "/wants", icon: Heart, label: "ほしいアイテム", color: "text-secondary", bg: "bg-secondary-light" },
+        { href: "/sell", icon: Camera, label: "出品する", color: "text-primary", bg: "bg-primary-light" },
+        { href: `/user/${user.id}`, icon: Eye, label: "自分の公開ページを見る", color: "text-muted", bg: "bg-background" },
+    ];
+
+    const subMenuItems = [
+        { href: "/trade/proposals", icon: Package, label: "提案一覧" },
+        { href: "/help", icon: HelpCircle, label: "ヘルプ・ガイド" },
+    ];
+
     return (
         <div className="bg-background min-h-screen pb-24">
             {/* Profile Header */}
-            <div className="gradient-hero text-white px-4 pt-8 pb-16 relative overflow-hidden">
+            <div className="gradient-hero text-white px-4 pt-6 pb-12 relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/10" />
-                <div className="relative z-10 flex items-center justify-between">
+                <div className="relative z-10 container mx-auto max-w-2xl">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-[20px] border-2 border-white/30 shadow-lg bg-white/20 flex items-center justify-center text-2xl font-black">
+                        <div className="w-16 h-16 rounded-[20px] border-2 border-white/30 shadow-lg bg-white/20 flex items-center justify-center text-2xl font-black shrink-0">
                             {(profile?.display_name || "?")[0]}
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 text-lg font-black">
-                                {profile?.display_name || "ユーザー"}
-                                {profile?.phone_verified && <ShieldCheck className="h-5 w-5 text-white/80" />}
+                                <span className="truncate">{profile?.display_name || "未設定"}</span>
+                                {profile?.phone_verified && (
+                                    <ShieldCheck className="h-5 w-5 text-white/80 shrink-0" />
+                                )}
                             </div>
-                            <div className="flex items-center gap-3 text-sm text-white/80">
+                            <div className="flex items-center gap-4 text-sm text-white/80 mt-0.5">
                                 <div className="flex items-center gap-0.5">
                                     <Star className="h-3.5 w-3.5 fill-yellow-300 text-yellow-300" />
                                     <span className="font-bold text-white">{profile?.rating_avg || 0}</span>
@@ -117,108 +135,79 @@ export default function MyPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-2 gap-3 mt-4">
+                        <div className="bg-white/15 rounded-2xl p-3 text-center backdrop-blur-sm">
+                            <p className="text-2xl font-black">{stats.tradeable}</p>
+                            <p className="text-[10px] text-white/70">交換可能</p>
+                        </div>
+                        <div className="bg-white/15 rounded-2xl p-3 text-center backdrop-blur-sm">
+                            <p className="text-2xl font-black">{stats.total}</p>
+                            <p className="text-[10px] text-white/70">コレクション</p>
+                        </div>
+                    </div>
+
+                    {!profile?.phone_verified && (
+                        <div className="mt-4 bg-white/15 rounded-2xl p-3 backdrop-blur-sm">
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="h-4 w-4 text-yellow-300" />
+                                <p className="text-xs font-bold">本人確認がまだ完了していません</p>
+                            </div>
+                            <p className="text-[10px] text-white/70 mt-0.5 ml-6">
+                                電話番号を認証すると、取引相手からの信頼度が向上します
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Stats Card */}
-            <div className="card mx-4 -mt-10 relative z-20 p-4 animate-bounce-in">
-                <div className="grid grid-cols-3 gap-1">
-                    {[
-                        { label: "進行中", count: activeTrades, icon: History, color: "text-primary", href: "/trade/proposals" },
-                        { label: "持ち物", count: items.length, icon: Package, color: "text-accent", href: null },
-                        { label: "交換中", count: filteredItems.length, icon: MessageSquare, color: "text-secondary", href: null },
-                    ].map((stat, i) => (
+            {/* Menu */}
+            <div className="container mx-auto max-w-2xl px-4 -mt-6 relative z-20 space-y-3">
+                {/* Main Menu */}
+                <div className="card overflow-hidden">
+                    {menuItems.map((item, i) => (
                         <Link
-                            key={i}
-                            href={stat.href || "#"}
-                            className="flex flex-col items-center gap-1 py-2 cursor-pointer hover:bg-background rounded-2xl transition-colors"
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-3 px-4 py-3.5 hover:bg-background transition-colors animate-fade-in-up delay-${i + 1} ${i < menuItems.length - 1 ? "border-b border-border" : ""
+                                }`}
                         >
-                            <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                            <span className="text-lg font-black">{stat.count}</span>
-                            <span className="text-[9px] text-muted font-bold">{stat.label}</span>
+                            <div className={`p-2 rounded-xl ${item.bg}`}>
+                                <item.icon className={`h-4 w-4 ${item.color}`} />
+                            </div>
+                            <span className="flex-1 text-sm font-bold">{item.label}</span>
+                            {item.badge && (
+                                <span className="badge bg-background text-muted text-[10px]">{item.badge}</span>
+                            )}
+                            <ChevronRight className="h-4 w-4 text-muted-light" />
                         </Link>
                     ))}
                 </div>
-            </div>
 
-            {/* X Share Banner */}
-            <div className="mx-4 mt-4">
-                <div className="card p-4 bg-foreground text-white animate-fade-in-up delay-1">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white/10 p-2.5 rounded-2xl shrink-0">
-                            <XLogo className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm">Xで交換相手を募集 🎯</p>
-                            <p className="text-[10px] text-white/60">あなたのコレクションをXでシェアしよう</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="mt-5 bg-surface border-y border-border flex">
-                <button
-                    onClick={() => setActiveTab("trading")}
-                    className={`flex-1 py-3.5 text-sm font-bold border-b-2 transition-all ${activeTab === "trading" ? "border-primary text-primary" : "border-transparent text-muted"}`}
-                >
-                    交換に出してる ({items.filter(i => i.is_tradeable).length})
-                </button>
-                <button
-                    onClick={() => setActiveTab("collection")}
-                    className={`flex-1 py-3.5 text-sm font-bold border-b-2 transition-all ${activeTab === "collection" ? "border-primary text-primary" : "border-transparent text-muted"}`}
-                >
-                    コレクション ({items.length})
-                </button>
-            </div>
-
-            {/* Items */}
-            <div className="p-4">
-                {filteredItems.length === 0 ? (
-                    <div className="text-center py-12 space-y-3">
-                        <p className="text-3xl">📦</p>
-                        <p className="text-muted font-bold">{activeTab === "trading" ? "交換中のアイテムはありません" : "アイテムがありません"}</p>
-                        <Link href="/sell" className="btn btn-primary px-6 py-2 inline-flex text-sm">
-                            アイテムを登録する
+                {/* Sub Menu */}
+                <div className="card overflow-hidden">
+                    {subMenuItems.map((item, i) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-3 px-4 py-3.5 hover:bg-background transition-colors ${i < subMenuItems.length - 1 ? "border-b border-border" : ""
+                                }`}
+                        >
+                            <item.icon className="h-4 w-4 text-muted" />
+                            <span className="flex-1 text-sm font-medium text-muted">{item.label}</span>
+                            <ChevronRight className="h-4 w-4 text-muted-light" />
                         </Link>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                        {filteredItems.map((item, i) => (
-                            <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
-                                <div className="aspect-square card overflow-hidden relative group">
-                                    <img src={item.images?.[0] || "/placeholder.png"} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                    {item.trade_status === "TRADING" && (
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
-                                            <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">取引中</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                )}
-            </div>
+                    ))}
+                </div>
 
-            {/* Menu List */}
-            <div className="card mx-4 mt-2 divide-y divide-border">
-                {[
-                    { label: "交換提案を見る", href: "/trade/proposals" },
-                    { label: "プロフィール・住所設定", href: "#" },
-                ].map((item, i, arr) => (
-                    <Link key={i} href={item.href} className={`px-5 py-4 flex items-center justify-between hover:bg-background cursor-pointer transition-colors first:rounded-t-[16px] ${i === arr.length - 1 ? 'rounded-b-[16px]' : ''}`}>
-                        <span className="text-sm font-medium">{item.label}</span>
-                        <ChevronRight className="h-4 w-4 text-muted-light" />
-                    </Link>
-                ))}
+                {/* Sign Out */}
                 <button
                     onClick={handleSignOut}
-                    className="w-full px-5 py-4 flex items-center justify-between hover:bg-danger/5 cursor-pointer transition-colors rounded-b-[16px] text-danger"
+                    className="card w-full flex items-center gap-3 px-4 py-3.5 hover:bg-danger/5 transition-colors"
                 >
-                    <span className="text-sm font-medium flex items-center gap-2">
-                        <LogOut className="h-4 w-4" />
-                        ログアウト
-                    </span>
+                    <LogOut className="h-4 w-4 text-danger" />
+                    <span className="text-sm font-medium text-danger">ログアウト</span>
                 </button>
             </div>
         </div>
