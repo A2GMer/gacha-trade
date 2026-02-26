@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
-import { Layers, ChevronLeft, Eye, EyeOff, ArrowRightLeft, Camera } from "lucide-react";
+import { Layers, ChevronLeft, Eye, EyeOff, ArrowRightLeft, Camera, Trash2, Edit3, AlertTriangle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface CollectionItem {
     id: string;
@@ -19,9 +20,12 @@ interface CollectionItem {
 export default function CollectionPage() {
     const { user } = useAuth();
     const supabase = createClient();
+    const router = useRouter();
     const [items, setItems] = useState<CollectionItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "tradeable" | "public" | "private">("all");
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         if (!user) return;
@@ -51,6 +55,17 @@ export default function CollectionPage() {
             prev.map((item) => (item.id === itemId ? { ...item, ...updates } : item))
         );
     }
+
+    async function deleteItem(itemId: string) {
+        setDeleting(true);
+        await supabase.from("user_items").delete().eq("id", itemId);
+        setItems((prev) => prev.filter((item) => item.id !== itemId));
+        setDeleteConfirm(null);
+        setDeleting(false);
+    }
+
+    const isInTrade = (item: CollectionItem) =>
+        item.trade_status === "TRADING" || item.trade_status === "PROPOSED" || item.trade_status === "ACCEPTED";
 
     const filtered = items.filter((item) => {
         if (filter === "tradeable") return item.is_tradeable;
@@ -101,8 +116,8 @@ export default function CollectionPage() {
                             key={f.key}
                             onClick={() => setFilter(f.key)}
                             className={`badge px-3 py-1.5 text-xs whitespace-nowrap cursor-pointer transition-all ${filter === f.key
-                                    ? "bg-primary text-white"
-                                    : "bg-background text-muted hover:bg-primary-light hover:text-primary"
+                                ? "bg-primary text-white"
+                                : "bg-background text-muted hover:bg-primary-light hover:text-primary"
                                 }`}
                         >
                             {f.label}
@@ -150,7 +165,7 @@ export default function CollectionPage() {
                                             alt=""
                                             className="w-full h-full object-cover"
                                         />
-                                        {item.trade_status === "TRADING" && (
+                                        {isInTrade(item) && (
                                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                                                 <span className="text-white text-[8px] font-bold">取引中</span>
                                             </div>
@@ -169,8 +184,8 @@ export default function CollectionPage() {
                                     </p>
                                     <div className="flex items-center gap-1.5 mt-1">
                                         <span className={`badge text-[8px] ${item.condition === "未開封" ? "bg-accent text-white" :
-                                                item.condition === "傷あり" ? "bg-warning text-white" :
-                                                    "bg-foreground/70 text-white"
+                                            item.condition === "傷あり" ? "bg-warning text-white" :
+                                                "bg-foreground/70 text-white"
                                             }`}>
                                             {item.condition}
                                         </span>
@@ -181,8 +196,8 @@ export default function CollectionPage() {
                                     <button
                                         onClick={() => toggleFlag(item.id, "is_tradeable", !item.is_tradeable)}
                                         className={`badge text-[10px] px-2 py-1 gap-0.5 cursor-pointer transition-all ${item.is_tradeable
-                                                ? "bg-primary text-white"
-                                                : "bg-background text-muted hover:bg-primary-light"
+                                            ? "bg-primary text-white"
+                                            : "bg-background text-muted hover:bg-primary-light"
                                             }`}
                                     >
                                         <ArrowRightLeft className="h-3 w-3" />
@@ -191,19 +206,67 @@ export default function CollectionPage() {
                                     <button
                                         onClick={() => toggleFlag(item.id, "is_public", !item.is_public)}
                                         className={`badge text-[10px] px-2 py-1 gap-0.5 cursor-pointer transition-all ${item.is_public
-                                                ? "bg-accent/10 text-accent"
-                                                : "bg-background text-muted hover:bg-accent-light"
+                                            ? "bg-accent/10 text-accent"
+                                            : "bg-background text-muted hover:bg-accent-light"
                                             }`}
                                     >
                                         {item.is_public ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                                         {item.is_public ? "公開" : "非公開"}
                                     </button>
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={() => router.push(`/item/${item.id}`)}
+                                            className="badge text-[10px] px-2 py-1 bg-background text-muted hover:bg-primary-light cursor-pointer transition-all"
+                                            title="編集"
+                                        >
+                                            <Edit3 className="h-3 w-3" />
+                                        </button>
+                                        <button
+                                            onClick={() => !isInTrade(item) && setDeleteConfirm(item.id)}
+                                            disabled={isInTrade(item)}
+                                            className={`badge text-[10px] px-2 py-1 cursor-pointer transition-all ${isInTrade(item)
+                                                ? "bg-background text-muted/30 cursor-not-allowed"
+                                                : "bg-background text-danger hover:bg-danger/10"
+                                                }`}
+                                            title={isInTrade(item) ? "取引中は削除できません" : "削除"}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center animate-fade-in p-4">
+                    <div className="bg-surface rounded-[20px] p-6 max-w-sm w-full space-y-4 animate-fade-in-up">
+                        <div className="flex items-center gap-2 text-danger">
+                            <AlertTriangle className="h-5 w-5" />
+                            <h3 className="font-bold text-sm">アイテムを削除しますか？</h3>
+                        </div>
+                        <p className="text-xs text-muted">この操作は元に戻せません。</p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setDeleteConfirm(null)}
+                                className="btn btn-outline flex-1 py-2.5"
+                            >
+                                キャンセル
+                            </button>
+                            <button
+                                onClick={() => deleteItem(deleteConfirm)}
+                                disabled={deleting}
+                                className="btn bg-danger text-white hover:bg-danger/90 flex-1 py-2.5 disabled:opacity-50"
+                            >
+                                {deleting ? "削除中..." : "削除する"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

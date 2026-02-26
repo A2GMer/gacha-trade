@@ -5,6 +5,7 @@ import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, S
 import Link from "next/link";
 import { ShippingGuide } from "@/components/trade/ShippingGuide";
 import { ReviewModal } from "@/components/trade/ReviewModal";
+import { DeadlineCountdown } from "@/components/trade/DeadlineCountdown";
 import { lookupPostalCode } from "@/lib/postal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
@@ -39,6 +40,7 @@ interface TradeData {
     proposer_received: boolean;
     receiver_received: boolean;
     created_at: string;
+    updated_at: string;
     proposer_item: { id: string; images: string[]; catalog_items: { name: string } };
     receiver_item: { id: string; images: string[]; catalog_items: { name: string } };
     proposer_profile: { display_name: string; rating_avg: number };
@@ -101,7 +103,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             const { data, error } = await supabase
                 .from("trades")
                 .select(`
-          id, status, proposer_id, receiver_id, created_at,
+          id, status, proposer_id, receiver_id, created_at, updated_at,
           proposer_shipped, receiver_shipped, proposer_received, receiver_received,
           proposer_item:proposer_item_id (id, images, catalog_items (name)),
           receiver_item:receiver_item_id (id, images, catalog_items (name)),
@@ -340,6 +342,14 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-2xl mx-auto w-full">
+                {/* Deadline Countdown */}
+                <DeadlineCountdown
+                    status={trade.status}
+                    acceptedAt={trade.updated_at}
+                    addressLockedAt={trade.updated_at}
+                    shippedAt={trade.updated_at}
+                />
+
                 {/* Trade Summary Card */}
                 <div className="card p-5 animate-fade-in-up">
                     <h2 className="text-xs font-bold text-muted uppercase mb-3 flex items-center gap-1.5 tracking-wider">
