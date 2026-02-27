@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase";
 
 interface UserProfile {
     display_name: string;
+    avatar_url: string | null;
     rating_avg: number;
     trade_count: number;
     phone_verified: boolean;
@@ -34,7 +35,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         async function fetchData() {
             const { data: prof } = await supabase
                 .from("profiles")
-                .select("display_name, rating_avg, trade_count, phone_verified")
+                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified")
                 .eq("id", id)
                 .single();
 
@@ -87,8 +88,12 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         <ChevronLeft className="h-6 w-6" />
                     </Link>
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-[20px] border-2 border-white/30 shadow-lg bg-white/20 flex items-center justify-center text-2xl font-black">
-                            {(profile.display_name || "?")[0]}
+                        <div className="w-16 h-16 rounded-[20px] border-2 border-white/30 shadow-lg bg-white/20 flex items-center justify-center text-2xl font-black overflow-hidden">
+                            {profile.avatar_url ? (
+                                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                (profile.display_name || "?")[0]
+                            )}
                         </div>
                         <div>
                             <div className="flex items-center gap-1.5 text-lg font-black">

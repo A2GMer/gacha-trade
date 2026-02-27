@@ -8,6 +8,7 @@ import { lookupPostalCode, PostalResult } from "@/lib/postal";
 
 interface ProfileSettingsProps {
     onClose: () => void;
+    onSaved?: () => void; // 保存後にマイページを再読み込みするコールバック
 }
 
 interface Address {
@@ -18,7 +19,7 @@ interface Address {
     line2: string;
 }
 
-export function ProfileSettings({ onClose }: ProfileSettingsProps) {
+export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
     const { user } = useAuth();
     const supabase = createClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,9 +41,12 @@ export function ProfileSettings({ onClose }: ProfileSettingsProps) {
         postal_code: "", prefecture: "", city: "", line1: "", line2: "",
     });
     const [postalLoading, setPostalLoading] = useState(false);
+    const [addressSaved, setAddressSaved] = useState(false);
+    const [addressError, setAddressError] = useState("");
 
     // General
     const [saving, setSaving] = useState(false);
+    const [profileSaved, setProfileSaved] = useState(false);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [activeTab, setActiveTab] = useState<"profile" | "phone" | "address">("profile");
 
@@ -77,7 +81,7 @@ export function ProfileSettings({ onClose }: ProfileSettingsProps) {
 
         setUploadingAvatar(true);
         const ext = file.name.split(".").pop();
-        const path = `avatars/${user.id}.${ext}`;
+        const path = `${user.id}.${ext}`;
 
         const { error: uploadError } = await supabase.storage
             .from("avatars")
@@ -93,41 +97,50 @@ export function ProfileSettings({ onClose }: ProfileSettingsProps) {
     };
 
     // ===== Phone OTP =====
+    // 既ログインユーザーの電話認証には updateUser を使用
     const sendOtp = async () => {
-        if (!phoneNumber.trim()) return;
+        if (!phoneNumber.trim() || !user) return;
         setPhoneLoading(true);
         setPhoneError("");
 
         const formatted = phoneNumber.startsWith("+") ? phoneNumber : `+81${phoneNumber.replace(/^0/, "")}`;
 
-        const { error } = await supabase.auth.signInWithOtp({ phone: formatted });
-        if (error) {
-            setPhoneError(error.message);
-        } else {
-            setShowOtpInput(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ phone: formatted });
+            if (error) {
+                setPhoneError(error.message);
+            } else {
+                setShowOtpInput(true);
+            }
+        } catch (e: any) {
+            setPhoneError("SMSの送信に失敗しました");
         }
         setPhoneLoading(false);
     };
 
     const verifyOtp = async () => {
-        if (!otpCode.trim()) return;
+        if (!otpCode.trim() || !user) return;
         setPhoneLoading(true);
         setPhoneError("");
 
         const formatted = phoneNumber.startsWith("+") ? phoneNumber : `+81${phoneNumber.replace(/^0/, "")}`;
 
-        const { error } = await supabase.auth.verifyOtp({
-            phone: formatted,
-            token: otpCode,
-            type: "sms",
-        });
+        try {
+            const { error } = await supabase.auth.verifyOtp({
+                phone: formatted,
+                token: otpCode,
+                type: "phone_change",
+            });
 
-        if (error) {
-            setPhoneError(error.message);
-        } else {
-            await supabase.from("profiles").update({ phone_verified: true }).eq("id", user!.id);
-            setPhoneVerified(true);
-            setPhoneSuccess(true);
+            if (error) {
+                setPhoneError(error.message);
+            } else {
+                await supabase.from("profiles").update({ phone_verified: true }).eq("id", user.id);
+                setPhoneVerified(true);
+                setPhoneSuccess(true);
+            }
+        } catch (e: any) {
+            setPhoneError("認証に失敗しました");
         }
         setPhoneLoading(false);
     };
@@ -147,20 +160,35 @@ export function ProfileSettings({ onClose }: ProfileSettingsProps) {
     const saveProfile = async () => {
         if (!user) return;
         setSaving(true);
-        await supabase.from("profiles").update({ display_name: displayName }).eq("id", user.id);
+        const { error } = await supabase.from("profiles").update({ display_name: displayName }).eq("id", user.id);
         setSaving(false);
-        onClose();
+        if (!error) {
+            setProfileSaved(true);
+            onSaved?.();
+            setTimeout(() => setProfileSaved(false), 2000);
+        }
     };
 
     // ===== Save Address =====
     const saveAddress = async () => {
         if (!user) return;
         setSaving(true);
-        await supabase.from("user_addresses").upsert({
+        setAddressError("");
+        setAddressSaved(false);
+
+        const { error } = await supabase.from("user_addresses").upsert({
             user_id: user.id,
             ...address,
+            updated_at: new Date().toISOString(),
         }, { onConflict: "user_id" });
+
         setSaving(false);
+        if (error) {
+            setAddressError("保存に失敗しました: " + error.message);
+        } else {
+            setAddressSaved(true);
+            setTimeout(() => setAddressSaved(false), 3000);
+        }
     };
 
     const tabs = [
@@ -239,6 +267,12 @@ export function ProfileSettings({ onClose }: ProfileSettingsProps) {
                                     className="w-full bg-background border border-border rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                             </div>
+
+                            {profileSaved && (
+                                <div className="flex items-center gap-2 text-success text-xs font-bold animate-fade-in">
+                                    <CheckCircle className="h-4 w-4" /> 保存しました！
+                                </div>
+                            )}
 
                             <button onClick={saveProfile} disabled={saving} className="btn btn-primary w-full py-3 disabled:opacity-50">
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "保存する"}
@@ -392,6 +426,15 @@ export function ProfileSettings({ onClose }: ProfileSettingsProps) {
                                     className="w-full bg-background border border-border rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                             </div>
+
+                            {addressSaved && (
+                                <div className="flex items-center gap-2 text-success text-xs font-bold animate-fade-in">
+                                    <CheckCircle className="h-4 w-4" /> 住所を保存しました！
+                                </div>
+                            )}
+                            {addressError && (
+                                <p className="text-xs text-danger font-bold">{addressError}</p>
+                            )}
 
                             <button onClick={saveAddress} disabled={saving} className="btn btn-primary w-full py-3 disabled:opacity-50">
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "住所を保存する"}

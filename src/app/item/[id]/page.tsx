@@ -29,6 +29,7 @@ interface ItemData {
     profiles: {
         id: string;
         display_name: string;
+        avatar_url: string | null;
         rating_avg: number;
         trade_count: number;
         phone_verified: boolean;
@@ -52,7 +53,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                 .select(`
           id, images, condition, quantity, memo, is_tradeable, owner_id,
           catalog_items (name, series, manufacturer),
-          profiles:owner_id (id, display_name, rating_avg, trade_count, phone_verified)
+          profiles:owner_id (id, display_name, avatar_url, rating_avg, trade_count, phone_verified)
         `)
                 .eq("id", id)
                 .single();
@@ -187,8 +188,12 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                         <h2 className="text-xs font-bold text-muted uppercase mb-3 tracking-wider">出品者情報</h2>
                         <Link href={`/user/${item.owner_id}`} className="flex items-center justify-between group">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-2xl border border-border bg-primary flex items-center justify-center text-white font-bold text-lg">
-                                    {(item.profiles?.display_name || "?")[0]}
+                                <div className="w-12 h-12 rounded-2xl border border-border bg-primary flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                                    {item.profiles?.avatar_url ? (
+                                        <img src={item.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        (item.profiles?.display_name || "?")[0]
+                                    )}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-1 font-bold group-hover:text-primary transition-colors">

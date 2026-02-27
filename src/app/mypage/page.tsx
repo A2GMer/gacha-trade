@@ -44,30 +44,31 @@ export default function MyPage() {
     const [loading, setLoading] = useState(true);
     const [showSettings, setShowSettings] = useState(false);
 
-    useEffect(() => {
+    const fetchData = async () => {
         if (!user) return;
-        async function fetchData() {
-            const [profRes, itemsRes] = await Promise.all([
-                supabase
-                    .from("profiles")
-                    .select("display_name, avatar_url, rating_avg, trade_count, phone_verified")
-                    .eq("id", user!.id)
-                    .single(),
-                supabase
-                    .from("user_items")
-                    .select("id, is_tradeable")
-                    .eq("owner_id", user!.id),
-            ]);
+        const [profRes, itemsRes] = await Promise.all([
+            supabase
+                .from("profiles")
+                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified")
+                .eq("id", user.id)
+                .single(),
+            supabase
+                .from("user_items")
+                .select("id, is_tradeable")
+                .eq("owner_id", user.id),
+        ]);
 
-            if (profRes.data) setProfile(profRes.data);
-            if (itemsRes.data) {
-                setStats({
-                    total: itemsRes.data.length,
-                    tradeable: itemsRes.data.filter((i) => i.is_tradeable).length,
-                });
-            }
-            setLoading(false);
+        if (profRes.data) setProfile(profRes.data);
+        if (itemsRes.data) {
+            setStats({
+                total: itemsRes.data.length,
+                tradeable: itemsRes.data.filter((i) => i.is_tradeable).length,
+            });
         }
+        setLoading(false);
+    };
+
+    useEffect(() => {
         fetchData();
     }, [user, supabase]);
 
@@ -226,7 +227,7 @@ export default function MyPage() {
 
             {/* Settings Modal */}
             {showSettings && (
-                <ProfileSettings onClose={() => { setShowSettings(false); router.refresh(); }} />
+                <ProfileSettings onClose={() => setShowSettings(false)} onSaved={() => fetchData()} />
             )}
         </div>
     );

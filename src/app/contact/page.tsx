@@ -45,7 +45,14 @@ export default function ContactPage() {
         });
 
         if (insertError) {
-            setError("送信に失敗しました。もう一度お試しください。");
+            console.error("Contact form error:", insertError);
+            if (insertError.code === "42P01") {
+                setError("お問い合わせテーブルが未作成です。管理者に連絡してください。");
+            } else if (insertError.code === "42501") {
+                setError("権限エラー: ログインしてから再度お試しください。");
+            } else {
+                setError(`送信に失敗しました（${insertError.message}）。もう一度お試しください。`);
+            }
         } else {
             setSubmitted(true);
         }
