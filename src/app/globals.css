@@ -4,10 +4,10 @@
 /* Clean, professional, mobile-first — inspired by Mercari/Yahoo!フリマ/Rakuma */
 
 :root {
-  /* Primary: Red */
-  --primary: #e6002d;
-  --primary-hover: #cc0028;
-  --primary-light: #fff0f3;
+  /* Primary: Red (Softer, easier on eyes) */
+  --primary: #e11d48;
+  --primary-hover: #be123c;
+  --primary-light: #fff1f2;
 
   /* Secondary */
   --secondary: #ff6b6b;
@@ -187,8 +187,13 @@ body {
 
 /* ===== Animations — minimal, functional only ===== */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .animate-fade-in {
@@ -209,12 +214,29 @@ body {
 }
 
 /* Staggered delays — kept minimal for list rendering */
-.delay-1 { animation-delay: 0.02s; }
-.delay-2 { animation-delay: 0.04s; }
-.delay-3 { animation-delay: 0.06s; }
-.delay-4 { animation-delay: 0.08s; }
-.delay-5 { animation-delay: 0.10s; }
-.delay-6 { animation-delay: 0.12s; }
+.delay-1 {
+  animation-delay: 0.02s;
+}
+
+.delay-2 {
+  animation-delay: 0.04s;
+}
+
+.delay-3 {
+  animation-delay: 0.06s;
+}
+
+.delay-4 {
+  animation-delay: 0.08s;
+}
+
+.delay-5 {
+  animation-delay: 0.10s;
+}
+
+.delay-6 {
+  animation-delay: 0.12s;
+}
 
 /* ===== Toast ===== */
 .toast {
@@ -411,6 +433,7 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

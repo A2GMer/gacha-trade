@@ -213,31 +213,26 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                         </Link>
                     </div>
 
-                    {/* X Share Card */}
-                    <div className="card p-4 bg-foreground text-white">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-white/10 p-2.5 rounded-lg">
-                                <XLogo className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm">このアイテムをXで拡散 🎯</p>
-                                <p className="text-xs text-white/60">交換相手が見つかりやすくなります</p>
-                            </div>
-                            <button
-                                onClick={() =>
-                                    shareOnX({
-                                        itemName: item.catalog_items?.name || "",
-                                        condition: item.condition,
-                                        series: item.catalog_items?.series,
-                                        manufacturer: item.catalog_items?.manufacturer,
-                                        itemId: item.id,
-                                    })
-                                }
-                                className="btn bg-white text-foreground hover:bg-white/90 text-xs px-4 py-2"
-                            >
-                                シェアする
-                            </button>
+                    {/* Share Button (Compact) */}
+                    <div className="flex items-center justify-between border border-border rounded-lg p-3">
+                        <div className="flex items-center gap-2.5">
+                            <XLogo className="h-4 w-4 text-foreground" />
+                            <span className="text-xs font-bold text-foreground">Xで拡散して交換相手を見つける</span>
                         </div>
+                        <button
+                            onClick={() =>
+                                shareOnX({
+                                    itemName: item.catalog_items?.name || "",
+                                    condition: item.condition,
+                                    series: item.catalog_items?.series,
+                                    manufacturer: item.catalog_items?.manufacturer,
+                                    itemId: item.id,
+                                })
+                            }
+                            className="text-[10px] font-bold text-foreground hover:bg-background border border-border px-3 py-1.5 rounded transition-colors"
+                        >
+                            シェアする
+                        </button>
                     </div>
 
                     {/* Desktop Action Buttons */}
