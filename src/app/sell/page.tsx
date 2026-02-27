@@ -110,7 +110,7 @@ export default function SellPage() {
                         <CheckCircle className="h-8 w-8 text-success" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-black mb-1">登録完了！ 🎉</h1>
+                        <h1 className="text-xl font-bold mb-1">登録完了！ 🎉</h1>
                         <p className="text-sm text-muted">アイテムがコレクションに追加されました</p>
                     </div>
 
@@ -160,7 +160,7 @@ export default function SellPage() {
         <div className="bg-background min-h-screen pb-28 sm:pb-8">
             {/* Header */}
             <div className="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-                <button onClick={() => router.back()} className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
+                <button onClick={() => router.back()} className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <ChevronLeft className="h-6 w-6" />
                 </button>
                 <h1 className="font-bold text-sm">アイテムを登録</h1>
@@ -169,7 +169,7 @@ export default function SellPage() {
 
             <div className="container mx-auto max-w-2xl px-4 py-6 space-y-5">
                 {errors.submit && (
-                    <div className="flex items-center gap-2 text-danger text-sm font-bold bg-danger/5 p-4 rounded-2xl animate-fade-in">
+                    <div className="flex items-center gap-2 text-danger text-sm font-bold bg-danger/5 p-4 rounded-lg animate-fade-in">
                         <AlertCircle className="h-5 w-5 shrink-0" />
                         {errors.submit}
                     </div>
@@ -196,9 +196,9 @@ export default function SellPage() {
                 {/* Step 3: Details */}
                 <div className="card p-5 space-y-5 animate-fade-in-up delay-2">
                     <div className="space-y-3">
-                        <h2 className="font-black">✨ 商品の状態</h2>
+                        <h2 className="font-bold">✨ 商品の状態</h2>
                         {errors.condition && (
-                            <div className="flex items-center gap-2 text-danger text-xs font-bold bg-danger/5 p-3 rounded-2xl">
+                            <div className="flex items-center gap-2 text-danger text-xs font-bold bg-danger/5 p-3 rounded-lg">
                                 <AlertCircle className="h-4 w-4 shrink-0" />
                                 {errors.condition}
                             </div>
@@ -208,7 +208,7 @@ export default function SellPage() {
                                 <button
                                     key={c}
                                     onClick={() => { setCondition(c); setErrors((e) => ({ ...e, condition: "" })); }}
-                                    className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all ${condition === c
+                                    className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${condition === c
                                         ? "bg-primary text-white shadow-md"
                                         : `bg-background text-foreground border ${errors.condition ? "border-danger/30" : "border-border"} hover:border-primary`
                                         }`}
@@ -220,18 +220,18 @@ export default function SellPage() {
                     </div>
 
                     <div className="space-y-3">
-                        <h2 className="font-black">🔢 数量</h2>
+                        <h2 className="font-bold">🔢 数量</h2>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                className="w-10 h-10 rounded-2xl border border-border text-lg font-bold hover:border-primary transition-colors"
+                                className="w-10 h-10 rounded-lg border border-border text-lg font-bold hover:border-primary transition-colors"
                             >
                                 −
                             </button>
-                            <span className="text-lg font-black w-8 text-center">{quantity}</span>
+                            <span className="text-lg font-bold w-8 text-center">{quantity}</span>
                             <button
                                 onClick={() => setQuantity(quantity + 1)}
-                                className="w-10 h-10 rounded-2xl border border-border text-lg font-bold hover:border-primary transition-colors"
+                                className="w-10 h-10 rounded-lg border border-border text-lg font-bold hover:border-primary transition-colors"
                             >
                                 +
                             </button>
@@ -239,13 +239,13 @@ export default function SellPage() {
                     </div>
 
                     <div className="space-y-3">
-                        <h2 className="font-black">📝 メモ（任意）</h2>
+                        <h2 className="font-bold">📝 メモ（任意）</h2>
                         <textarea
                             value={memo}
                             onChange={(e) => setMemo(e.target.value)}
                             placeholder="商品の状態や、交換してほしいアイテムなどを入力してください"
                             rows={3}
-                            className="w-full bg-background border border-border rounded-2xl p-3 outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all resize-none"
+                            className="w-full bg-background border border-border rounded-lg p-3 outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all resize-none"
                         />
                     </div>
                 </div>
@@ -276,7 +276,7 @@ export default function SellPage() {
                     </div>
 
                     {isTradeable && (
-                        <div className="bg-primary-light p-3 rounded-2xl flex gap-2 items-start animate-fade-in">
+                        <div className="bg-primary-light p-3 rounded-lg flex gap-2 items-start animate-fade-in">
                             <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                             <p className="text-[10px] text-primary font-medium leading-tight">
                                 「交換に出す」が有効な場合、自動的に「全体に公開」設定になります。
@@ -289,7 +289,7 @@ export default function SellPage() {
                 <button
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="btn btn-primary w-full py-4 text-base animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn btn-primary w-full py-4 text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {submitting ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

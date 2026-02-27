@@ -81,14 +81,13 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     return (
         <div className="bg-background min-h-screen pb-24">
             {/* Header */}
-            <div className="gradient-hero text-white px-4 pt-4 pb-16 relative overflow-hidden">
-                <div className="absolute inset-0 bg-black/10" />
+            <div className="bg-white border-b border-border px-4 pt-4 pb-6">
                 <div className="relative z-10">
-                    <Link href="/" className="inline-flex p-1 hover:bg-white/10 rounded-2xl transition-colors mb-4">
+                    <Link href="/" className="inline-flex p-1 hover:bg-background rounded-lg transition-colors mb-4">
                         <ChevronLeft className="h-6 w-6" />
                     </Link>
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-[20px] border-2 border-white/30 shadow-lg bg-white/20 flex items-center justify-center text-2xl font-black overflow-hidden">
+                        <div className="w-14 h-14 rounded-full border border-border bg-background flex items-center justify-center text-xl font-bold overflow-hidden">
                             {profile.avatar_url ? (
                                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -96,14 +95,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             )}
                         </div>
                         <div>
-                            <div className="flex items-center gap-1.5 text-lg font-black">
+                            <div className="flex items-center gap-1.5 text-base font-bold">
                                 {profile.display_name}
-                                {profile.phone_verified && <ShieldCheck className="h-5 w-5 text-white/80" />}
+                                {profile.phone_verified && <ShieldCheck className="h-4 w-4 text-accent" />}
                             </div>
-                            <div className="flex items-center gap-3 text-sm text-white/80">
+                            <div className="flex items-center gap-3 text-sm text-muted">
                                 <div className="flex items-center gap-0.5">
-                                    <Star className="h-3.5 w-3.5 fill-yellow-300 text-yellow-300" />
-                                    <span className="font-bold text-white">{profile.rating_avg || 0}</span>
+                                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                                    <span className="font-semibold text-foreground">{profile.rating_avg || 0}</span>
                                 </div>
                                 <span>取引 {profile.trade_count || 0}回</span>
                             </div>

@@ -122,7 +122,7 @@ export default function ProposalsPage() {
         <div className="bg-background min-h-screen pb-24">
             {/* Header */}
             <div className="bg-surface px-4 py-5 border-b border-border">
-                <h1 className="text-lg font-black flex items-center gap-2">
+                <h1 className="text-lg font-bold flex items-center gap-2">
                     <ArrowRightLeft className="h-5 w-5 text-primary" />
                     交換提案
                 </h1>

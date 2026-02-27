@@ -7,8 +7,8 @@ export function Footer() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div>
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-white font-black text-xs">ガ</div>
-                            <span className="font-black text-lg tracking-tight">ガチャトレード</span>
+                            <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xs">ガ</div>
+                            <span className="font-bold text-base tracking-tight">ガチャトレード</span>
                         </div>
                         <p className="text-xs text-muted leading-relaxed max-w-xs">
                             ダブったカプセルトイを、欲しい誰かと交換しよう。<br />

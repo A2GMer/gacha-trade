@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
                 <div className="card p-6 space-y-6 text-sm text-foreground/80 leading-relaxed">
                     <div className="flex items-center gap-2 mb-2 pb-4 border-b border-border">
                         <ShieldCheck className="h-5 w-5 text-primary" />
-                        <h2 className="text-lg font-black text-foreground">プライバシーポリシー</h2>
+                        <h2 className="text-lg font-bold text-foreground">プライバシーポリシー</h2>
                     </div>
 
                     <section className="space-y-2 text-justify">

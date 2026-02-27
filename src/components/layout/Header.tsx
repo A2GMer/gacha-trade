@@ -32,11 +32,11 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full glass border-b border-white/20">
-      <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-border">
+      <div className="container mx-auto px-4 h-12 flex items-center justify-between gap-3">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-[1.02]">
-          <img src="/logo.webp" alt="ガチャトレード" className="h-10 sm:h-12 w-auto object-contain" />
+          <img src="/logo.webp" alt="ガチャトレード" className="h-8 sm:h-9 w-auto object-contain" />
         </Link>
 
         {/* Search Bar */}
@@ -46,36 +46,36 @@ export function Header() {
             type="text"
             name="q"
             placeholder="キーワードで検索..."
-            className="w-full bg-background/80 border border-border rounded-full py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all placeholder:text-muted-light"
+            className="w-full bg-background border border-border rounded-lg py-2 pl-10 pr-4 text-sm focus:border-primary/40 outline-none transition-colors placeholder:text-muted-light"
           />
         </form>
 
         {/* Icons */}
         <div className="flex items-center gap-1">
           {loading ? (
-            <div className="w-9 h-9 rounded-2xl bg-background animate-pulse" />
+            <div className="w-8 h-8 rounded-lg bg-background animate-pulse" />
           ) : user ? (
             <>
               <Link
                 href="/dashboard"
-                className="hidden sm:flex p-2.5 hover:bg-primary-light rounded-2xl transition-colors"
+                className="hidden sm:flex p-2 hover:bg-primary-light rounded-lg transition-colors"
                 title="取引ダッシュボード"
               >
                 <ArrowRightLeft className="h-5 w-5 text-foreground" />
               </Link>
-              <Link href="/notifications" className="p-2.5 hover:bg-primary-light rounded-2xl relative transition-colors">
+              <Link href="/notifications" className="p-2 hover:bg-primary-light rounded-lg relative transition-colors">
                 <Bell className="h-5 w-5 text-foreground" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white animate-pulse"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-white"></span>
               </Link>
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setShowMenu(!showMenu)}
-                  className="p-2.5 hover:bg-primary-light rounded-2xl transition-colors"
+                  className="p-2 hover:bg-primary-light rounded-lg transition-colors"
                 >
                   <User className="h-5 w-5 text-foreground" />
                 </button>
                 {showMenu && (
-                  <div className="absolute right-0 top-full mt-1 bg-white rounded-2xl shadow-lg border border-border py-2 min-w-[160px] animate-fade-in z-50">
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-border py-1 min-w-[160px] animate-fade-in z-50">
                     <div className="px-4 py-2 border-b border-border">
                       <p className="text-xs font-bold truncate">{user.user_metadata?.display_name || user.email}</p>
                       <p className="text-[10px] text-muted truncate">{user.email}</p>

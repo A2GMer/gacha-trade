@@ -67,7 +67,7 @@ export default function ContactPage() {
                         <CheckCircle className="h-8 w-8 text-success" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-black mb-1">送信完了 ✉️</h1>
+                        <h1 className="text-xl font-bold mb-1">送信完了 ✉️</h1>
                         <p className="text-sm text-muted">お問い合わせを受け付けました。担当者より回答いたします。</p>
                     </div>
                     <button onClick={() => router.push("/mypage")} className="btn btn-primary w-full py-3">
@@ -81,7 +81,7 @@ export default function ContactPage() {
     return (
         <div className="bg-background min-h-screen pb-28 sm:pb-8">
             <div className="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-                <button onClick={() => router.back()} className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
+                <button onClick={() => router.back()} className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <ChevronLeft className="h-6 w-6" />
                 </button>
                 <h1 className="font-bold text-sm">お問い合わせ</h1>
@@ -90,7 +90,7 @@ export default function ContactPage() {
 
             <div className="container mx-auto max-w-2xl px-4 py-6 space-y-5">
                 {error && (
-                    <div className="flex items-center gap-2 text-danger text-sm font-bold bg-danger/5 p-4 rounded-2xl animate-fade-in">
+                    <div className="flex items-center gap-2 text-danger text-sm font-bold bg-danger/5 p-4 rounded-lg animate-fade-in">
                         <AlertCircle className="h-5 w-5 shrink-0" />
                         {error}
                     </div>
@@ -99,7 +99,7 @@ export default function ContactPage() {
                 <div className="card p-5 space-y-4 animate-fade-in-up">
                     <div className="flex items-center gap-2">
                         <MessageSquare className="h-5 w-5 text-primary" />
-                        <h2 className="font-black">お問い合わせフォーム</h2>
+                        <h2 className="font-bold">お問い合わせフォーム</h2>
                     </div>
 
                     <div>
@@ -107,7 +107,7 @@ export default function ContactPage() {
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="w-full bg-background border border-border rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                            className="w-full bg-background border border-border rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                         >
                             <option value="">選択してください</option>
                             {CATEGORIES.map(c => (
@@ -124,7 +124,7 @@ export default function ContactPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="your@email.com"
-                                className="w-full bg-background border border-border rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                                className="w-full bg-background border border-border rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                             />
                         </div>
                     )}
@@ -136,7 +136,7 @@ export default function ContactPage() {
                             value={subject}
                             onChange={(e) => setSubject(e.target.value)}
                             placeholder="お問い合わせの件名"
-                            className="w-full bg-background border border-border rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                            className="w-full bg-background border border-border rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                         />
                     </div>
 
@@ -147,7 +147,7 @@ export default function ContactPage() {
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder="お問い合わせ内容を詳しくご記入ください"
                             rows={5}
-                            className="w-full bg-background border border-border rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                            className="w-full bg-background border border-border rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                         />
                     </div>
 

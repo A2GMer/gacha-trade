@@ -161,7 +161,7 @@ function ProposeContent() {
         <div className="bg-background min-h-screen pb-28 sm:pb-8">
             {/* Header */}
             <div className="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-                <button onClick={() => router.back()} className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
+                <button onClick={() => router.back()} className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <ChevronLeft className="h-6 w-6" />
                 </button>
                 <h1 className="font-bold text-sm">交換を提案する</h1>
@@ -170,7 +170,7 @@ function ProposeContent() {
 
             <div className="container mx-auto max-w-2xl px-4 py-6 space-y-5">
                 {error && (
-                    <div className="bg-danger/5 border border-danger/20 text-danger text-sm font-medium p-3 rounded-2xl animate-fade-in">
+                    <div className="bg-danger/5 border border-danger/20 text-danger text-sm font-medium p-3 rounded-lg animate-fade-in">
                         {error}
                     </div>
                 )}
@@ -187,7 +187,7 @@ function ProposeContent() {
                                 <>
                                     <img
                                         src={myItems.find(i => i.id === selectedItemId)?.images[0] || ""}
-                                        className="w-20 h-20 mx-auto rounded-2xl border border-border object-cover mb-1 shadow-sm"
+                                        className="w-20 h-20 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm"
                                     />
                                     <p className="badge bg-primary-light text-primary text-[8px] mx-auto">あなた</p>
                                     <p className="text-[10px] font-bold mt-0.5 truncate">
@@ -195,7 +195,7 @@ function ProposeContent() {
                                     </p>
                                 </>
                             ) : (
-                                <div className="w-20 h-20 mx-auto rounded-2xl border-2 border-dashed border-primary/30 flex items-center justify-center mb-1 bg-primary-light/50">
+                                <div className="w-20 h-20 mx-auto rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center mb-1 bg-primary-light/50">
                                     <span className="text-xl">❓</span>
                                 </div>
                             )}
@@ -209,7 +209,7 @@ function ProposeContent() {
                         <div className="flex-1 text-center">
                             <img
                                 src={targetItem.images[0]}
-                                className="w-20 h-20 mx-auto rounded-2xl border border-border object-cover mb-1 shadow-sm"
+                                className="w-20 h-20 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm"
                             />
                             <p className="badge bg-secondary-light text-secondary text-[8px] mx-auto">
                                 {targetItem.profiles?.display_name}さん
@@ -221,7 +221,7 @@ function ProposeContent() {
 
                 {/* My Items */}
                 <div className="card p-5 space-y-4 animate-fade-in-up delay-1">
-                    <h2 className="font-black">🔄 交換に出すアイテムを選んでください</h2>
+                    <h2 className="font-bold">🔄 交換に出すアイテムを選んでください</h2>
                     {myItems.length === 0 ? (
                         <div className="text-center py-8 space-y-3">
                             <p className="text-3xl">📦</p>
@@ -236,7 +236,7 @@ function ProposeContent() {
                                 <button
                                     key={item.id}
                                     onClick={() => setSelectedItemId(item.id)}
-                                    className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${selectedItemId === item.id
+                                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedItemId === item.id
                                         ? "border-primary shadow-md ring-2 ring-primary/20"
                                         : "border-border hover:border-primary/50"
                                         }`}
@@ -258,13 +258,13 @@ function ProposeContent() {
 
                 {/* Message */}
                 <div className="card p-5 space-y-3 animate-fade-in-up delay-2">
-                    <h2 className="font-black">💬 メッセージ（任意）</h2>
+                    <h2 className="font-bold">💬 メッセージ（任意）</h2>
                     <textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="交換の挨拶やメッセージを入力してください"
                         rows={3}
-                        className="w-full bg-background border border-border rounded-2xl p-3 outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all resize-none"
+                        className="w-full bg-background border border-border rounded-lg p-3 outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all resize-none"
                     />
                 </div>
 

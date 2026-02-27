@@ -102,7 +102,7 @@ export default function NotificationsPage() {
             {/* Header */}
             <div className="bg-surface px-4 py-5 border-b border-border">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-lg font-black flex items-center gap-2">
+                    <h1 className="text-lg font-bold flex items-center gap-2">
                         <Bell className="h-5 w-5 text-primary" />
                         お知らせ
                     </h1>
@@ -136,7 +136,7 @@ export default function NotificationsPage() {
                                 className={`px-4 py-4 flex items-start gap-3 hover:bg-surface transition-colors animate-fade-in-up delay-${(i % 5) + 1} block ${!notif.is_read ? "bg-primary-light/30" : ""
                                     }`}
                             >
-                                <div className={`p-2.5 rounded-2xl shrink-0 ${bg}`}>
+                                <div className={`p-2.5 rounded-lg shrink-0 ${bg}`}>
                                     <Icon className={`h-5 w-5 ${color}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">

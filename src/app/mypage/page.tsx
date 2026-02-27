@@ -116,11 +116,10 @@ export default function MyPage() {
     return (
         <div className="bg-background min-h-screen pb-24">
             {/* Profile Header */}
-            <div className="gradient-hero text-white px-4 pt-6 pb-12 relative overflow-hidden">
-                <div className="absolute inset-0 bg-black/10" />
-                <div className="relative z-10 container mx-auto max-w-2xl">
+            <div className="bg-white border-b border-border px-4 pt-6 pb-8">
+                <div className="container mx-auto max-w-2xl">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-full border-2 border-white/30 shadow-lg bg-white/20 flex items-center justify-center text-2xl font-black shrink-0 overflow-hidden">
+                        <div className="w-14 h-14 rounded-full border border-border bg-background flex items-center justify-center text-xl font-bold shrink-0 overflow-hidden">
                             {profile?.avatar_url ? (
                                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -128,50 +127,50 @@ export default function MyPage() {
                             )}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 text-lg font-black">
+                            <div className="flex items-center gap-1.5 text-base font-bold">
                                 <span className="truncate">{profile?.display_name || "未設定"}</span>
                                 {profile?.phone_verified && (
-                                    <ShieldCheck className="h-5 w-5 text-white/80 shrink-0" />
+                                    <ShieldCheck className="h-4 w-4 text-accent shrink-0" />
                                 )}
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-white/80 mt-0.5">
+                            <div className="flex items-center gap-4 text-sm text-muted mt-0.5">
                                 <div className="flex items-center gap-0.5">
-                                    <Star className="h-3.5 w-3.5 fill-yellow-300 text-yellow-300" />
-                                    <span className="font-bold text-white">{profile?.rating_avg || 0}</span>
+                                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                                    <span className="font-semibold text-foreground">{profile?.rating_avg || 0}</span>
                                 </div>
                                 <span>取引 {profile?.trade_count || 0}回</span>
                             </div>
                         </div>
                         <button
                             onClick={() => setShowSettings(true)}
-                            className="p-2 rounded-xl bg-white/15 hover:bg-white/25 transition-colors"
+                            className="p-2 rounded-lg border border-border hover:bg-background transition-colors"
                         >
-                            <Settings className="h-5 w-5" />
+                            <Settings className="h-5 w-5 text-muted" />
                         </button>
                     </div>
 
                     {/* Quick Stats */}
                     <div className="grid grid-cols-2 gap-3 mt-4">
-                        <div className="bg-white/15 rounded-2xl p-3 text-center backdrop-blur-sm">
-                            <p className="text-2xl font-black">{stats.tradeable}</p>
-                            <p className="text-[10px] text-white/70">交換可能</p>
+                        <div className="bg-background rounded-lg p-3 text-center">
+                            <p className="text-xl font-bold">{stats.tradeable}</p>
+                            <p className="text-[10px] text-muted">交換可能</p>
                         </div>
-                        <div className="bg-white/15 rounded-2xl p-3 text-center backdrop-blur-sm">
-                            <p className="text-2xl font-black">{stats.total}</p>
-                            <p className="text-[10px] text-white/70">コレクション</p>
+                        <div className="bg-background rounded-lg p-3 text-center">
+                            <p className="text-xl font-bold">{stats.total}</p>
+                            <p className="text-[10px] text-muted">コレクション</p>
                         </div>
                     </div>
 
                     {!profile?.phone_verified && (
                         <button
                             onClick={() => { setShowSettings(true); }}
-                            className="mt-4 w-full bg-white/15 rounded-2xl p-3 backdrop-blur-sm text-left hover:bg-white/25 transition-colors"
+                            className="mt-3 w-full bg-warning/10 rounded-lg p-3 text-left hover:bg-warning/15 transition-colors"
                         >
                             <div className="flex items-center gap-2">
-                                <ShieldCheck className="h-4 w-4 text-yellow-300" />
-                                <p className="text-xs font-bold">本人確認がまだ完了していません</p>
+                                <ShieldCheck className="h-4 w-4 text-warning" />
+                                <p className="text-xs font-semibold text-foreground">本人確認がまだ完了していません</p>
                             </div>
-                            <p className="text-[10px] text-white/70 mt-0.5 ml-6">
+                            <p className="text-[10px] text-muted mt-0.5 ml-6">
                                 タップして電話番号を認証 →
                             </p>
                         </button>
@@ -180,19 +179,19 @@ export default function MyPage() {
             </div>
 
             {/* Menu */}
-            <div className="container mx-auto max-w-2xl px-4 -mt-6 relative z-20 space-y-3">
+            <div className="container mx-auto max-w-2xl px-4 mt-4 space-y-3">
                 <div className="card overflow-hidden">
                     {menuItems.map((item, i) => (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-3 px-4 py-3.5 hover:bg-background transition-colors animate-fade-in-up delay-${i + 1} ${i < menuItems.length - 1 ? "border-b border-border" : ""
+                            className={`flex items-center gap-3 px-4 py-3.5 hover:bg-background transition-colors ${i < menuItems.length - 1 ? "border-b border-border" : ""
                                 }`}
                         >
-                            <div className={`p-2 rounded-xl ${item.bg}`}>
+                            <div className={`p-2 rounded-lg ${item.bg}`}>
                                 <item.icon className={`h-4 w-4 ${item.color}`} />
                             </div>
-                            <span className="flex-1 text-sm font-bold">{item.label}</span>
+                            <span className="flex-1 text-sm font-semibold">{item.label}</span>
                             {item.badge && (
                                 <span className="badge bg-background text-muted text-[10px]">{item.badge}</span>
                             )}

@@ -111,7 +111,7 @@ export default function SearchPage() {
                     </div>
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className={`p-2.5 rounded-2xl border transition-all ${showFilters ? "bg-primary text-white border-primary" : "bg-surface border-border text-muted hover:border-primary"
+                        className={`p-2.5 rounded-lg border transition-all ${showFilters ? "bg-primary text-white border-primary" : "bg-surface border-border text-muted hover:border-primary"
                             }`}
                     >
                         <SlidersHorizontal className="h-5 w-5" />

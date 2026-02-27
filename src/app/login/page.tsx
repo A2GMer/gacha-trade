@@ -55,7 +55,7 @@ export default function LoginPage() {
                     <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto">
                         <Mail className="h-8 w-8 text-success" />
                     </div>
-                    <h2 className="text-lg font-black">確認メールを送信しました</h2>
+                    <h2 className="text-lg font-bold">確認メールを送信しました</h2>
                     <p className="text-sm text-muted leading-relaxed">
                         <strong>{email}</strong> に確認メールを送信しました。
                         メール内のリンクをクリックして、アカウントを有効化してください。
@@ -80,12 +80,12 @@ export default function LoginPage() {
                         <div className="w-16 h-16 bg-primary rounded-[20px] flex items-center justify-center mx-auto shadow-lg">
                             <ArrowRightLeft className="h-8 w-8 text-white" />
                         </div>
-                        <h1 className="text-2xl font-black">ガチャトレード</h1>
+                        <h1 className="text-2xl font-bold">ガチャトレード</h1>
                         <p className="text-sm text-muted">カプセルトイの物々交換サービス</p>
                     </div>
 
                     {/* Toggle */}
-                    <div className="flex bg-background rounded-2xl p-1 border border-border">
+                    <div className="flex bg-background rounded-lg p-1 border border-border">
                         <button
                             onClick={() => setIsLogin(true)}
                             className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${isLogin ? "bg-surface shadow-sm text-foreground" : "text-muted"
@@ -114,7 +114,7 @@ export default function LoginPage() {
                                         value={displayName}
                                         onChange={(e) => setDisplayName(e.target.value)}
                                         placeholder="ニックネーム"
-                                        className="w-full bg-surface border border-border rounded-2xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
+                                        className="w-full bg-surface border border-border rounded-lg py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
                                     />
                                 </div>
                             </div>
@@ -130,7 +130,7 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="example@email.com"
                                     required
-                                    className="w-full bg-surface border border-border rounded-2xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
+                                    className="w-full bg-surface border border-border rounded-lg py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -146,7 +146,7 @@ export default function LoginPage() {
                                     placeholder="8文字以上"
                                     required
                                     minLength={8}
-                                    className="w-full bg-surface border border-border rounded-2xl py-3 pl-10 pr-12 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
+                                    className="w-full bg-surface border border-border rounded-lg py-3 pl-10 pr-12 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
                                 />
                                 <button
                                     type="button"
@@ -159,7 +159,7 @@ export default function LoginPage() {
                         </div>
 
                         {error && (
-                            <div className="bg-danger/5 border border-danger/20 rounded-2xl p-3">
+                            <div className="bg-danger/5 border border-danger/20 rounded-lg p-3">
                                 <p className="text-xs text-danger font-bold">{error}</p>
                             </div>
                         )}

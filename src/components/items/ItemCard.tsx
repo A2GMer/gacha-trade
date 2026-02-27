@@ -47,7 +47,7 @@ export function ItemCard({
                         src={image || "/placeholder.png"}
                         alt={`${name} - ${series || ""} ${condition}`}
                         loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200"
                     />
                     {tradeStatus === "TRADING" && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
@@ -63,7 +63,7 @@ export function ItemCard({
 
                 {size === "md" && (
                     <div className="p-3 space-y-1.5">
-                        <h3 className="text-sm font-bold line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                        <h3 className="text-sm font-medium line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                             {name}
                         </h3>
                         {manufacturer && (

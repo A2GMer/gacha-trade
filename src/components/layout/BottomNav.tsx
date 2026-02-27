@@ -35,7 +35,7 @@ export function BottomNav() {
     }, [user, supabase, pathname]);
 
     return (
-        <nav className="sm:hidden fixed bottom-0 left-0 right-0 glass border-t border-white/20 px-2 pt-1 pb-[env(safe-area-inset-bottom,8px)] z-50">
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border px-2 pt-1 pb-[env(safe-area-inset-bottom,8px)] z-50">
             <div className="flex justify-around items-end">
                 {NAV_ITEMS.map((item) => {
                     const isActive =
@@ -45,9 +45,9 @@ export function BottomNav() {
 
                     if (item.isCenter) {
                         return (
-                            <Link key={item.href} href={item.href} className="flex flex-col items-center -mt-5">
-                                <div className="bg-primary text-white p-3.5 rounded-[20px] border-4 border-background shadow-lg animate-pulse-glow transition-transform active:scale-90">
-                                    <item.icon className="h-6 w-6" strokeWidth={2.5} />
+                            <Link key={item.href} href={item.href} className="flex flex-col items-center -mt-4">
+                                <div className="bg-primary text-white p-3 rounded-2xl border-4 border-white shadow-md transition-transform active:scale-95">
+                                    <item.icon className="h-5 w-5" strokeWidth={2.5} />
                                 </div>
                                 <span className="text-[10px] font-bold text-primary mt-0.5">出品</span>
                             </Link>
@@ -58,7 +58,7 @@ export function BottomNav() {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-colors relative ${isActive ? "text-primary" : "text-muted hover:text-foreground"
+                            className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-lg transition-colors relative ${isActive ? "text-primary" : "text-muted hover:text-foreground"
                                 }`}
                         >
                             <div className="relative">

@@ -112,11 +112,11 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
 
             {/* Mobile Top Header */}
             <div className="sm:hidden sticky top-0 glass z-40 px-4 py-3 flex items-center justify-between">
-                <Link href="/" className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
+                <Link href="/" className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <ChevronLeft className="h-6 w-6" />
                 </Link>
                 {!isOwner && (
-                    <button onClick={() => setShowReport(true)} className="p-2 hover:bg-primary-light rounded-2xl transition-colors">
+                    <button onClick={() => setShowReport(true)} className="p-2 hover:bg-primary-light rounded-lg transition-colors">
                         <Flag className="h-5 w-5 text-muted" />
                     </button>
                 )}
@@ -139,7 +139,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                             <button
                                 key={i}
                                 onClick={() => setSelectedImage(i)}
-                                className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${selectedImage === i
+                                className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === i
                                     ? "border-primary shadow-md scale-[1.02]"
                                     : "border-border hover:border-muted"
                                     }`}
@@ -155,7 +155,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                     {/* Item Info */}
                     <div className="card p-5 space-y-4">
                         <div>
-                            <h1 className="text-xl font-black mb-2 leading-tight">{item.catalog_items?.name}</h1>
+                            <h1 className="text-xl font-bold mb-2 leading-tight">{item.catalog_items?.name}</h1>
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className={`badge ${item.condition === "未開封" ? "bg-accent text-white" :
                                     item.condition === "傷あり" ? "bg-warning text-white" :
@@ -188,7 +188,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                         <h2 className="text-xs font-bold text-muted uppercase mb-3 tracking-wider">出品者情報</h2>
                         <Link href={`/user/${item.owner_id}`} className="flex items-center justify-between group">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-2xl border border-border bg-primary flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                                <div className="w-12 h-12 rounded-lg border border-border bg-primary flex items-center justify-center text-white font-bold text-lg overflow-hidden">
                                     {item.profiles?.avatar_url ? (
                                         <img src={item.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
                                     ) : (
@@ -216,7 +216,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                     {/* X Share Card */}
                     <div className="card p-4 bg-foreground text-white">
                         <div className="flex items-center gap-3">
-                            <div className="bg-white/10 p-2.5 rounded-2xl">
+                            <div className="bg-white/10 p-2.5 rounded-lg">
                                 <XLogo className="h-5 w-5" />
                             </div>
                             <div className="flex-1 min-w-0">

@@ -172,7 +172,7 @@ export default function DashboardPage() {
         <div className="bg-background min-h-screen pb-24">
             {/* Header */}
             <div className="bg-surface px-4 py-5 border-b border-border">
-                <h1 className="text-lg font-black flex items-center gap-2">
+                <h1 className="text-lg font-bold flex items-center gap-2">
                     <Package className="h-5 w-5 text-primary" />
                     取引ダッシュボード
                 </h1>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                     <section className="animate-fade-in-up">
                         <div className="flex items-center gap-2 mb-3">
                             <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                            <h2 className="text-sm font-black text-primary">
+                            <h2 className="text-sm font-bold text-primary">
                                 今やること（{actionRequired.length}件）
                             </h2>
                         </div>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                 {/* In Progress */}
                 <section className="animate-fade-in-up delay-1">
                     <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-sm font-black">
+                        <h2 className="text-sm font-bold">
                             📦 進行中（{inProgress.length}件）
                         </h2>
                         <Link
@@ -228,7 +228,7 @@ export default function DashboardPage() {
 
                 {/* Completed */}
                 <section className="animate-fade-in-up delay-2">
-                    <h2 className="text-sm font-black mb-3">
+                    <h2 className="text-sm font-bold mb-3">
                         ✅ 取引履歴（{completed.length}件）
                     </h2>
                     {completed.length === 0 ? (

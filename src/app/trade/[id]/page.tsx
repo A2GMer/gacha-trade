@@ -296,7 +296,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         <div className="bg-background min-h-screen flex flex-col">
             {/* Header */}
             <div className="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-                <Link href="/trade/proposals" className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
+                <Link href="/trade/proposals" className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <ChevronLeft className="h-6 w-6" />
                 </Link>
                 <div className="text-center flex items-center gap-2">
@@ -308,7 +308,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                         <p className="text-[10px] text-muted">との取引</p>
                     </div>
                 </div>
-                <button className="p-1 hover:bg-primary-light rounded-2xl transition-colors">
+                <button className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <Info className="h-5 w-5 text-muted" />
                 </button>
             </div>
@@ -357,7 +357,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     </h2>
                     <div className="flex items-center gap-3">
                         <div className="flex-1 text-center">
-                            <img src={myItem?.images?.[0] || "/placeholder.png"} className="w-16 h-16 mx-auto rounded-2xl border border-border object-cover mb-1 shadow-sm" />
+                            <img src={myItem?.images?.[0] || "/placeholder.png"} className="w-16 h-16 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm" />
                             <p className="badge bg-primary-light text-primary text-[8px] mx-auto">あなた</p>
                             <p className="text-[10px] font-bold mt-0.5 truncate">{myItem?.catalog_items?.name}</p>
                         </div>
@@ -365,7 +365,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                             <ArrowRightLeft className="h-4 w-4" />
                         </div>
                         <div className="flex-1 text-center">
-                            <img src={partnerItem?.images?.[0] || "/placeholder.png"} className="w-16 h-16 mx-auto rounded-2xl border border-border object-cover mb-1 shadow-sm" />
+                            <img src={partnerItem?.images?.[0] || "/placeholder.png"} className="w-16 h-16 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm" />
                             <p className="badge bg-secondary-light text-secondary text-[8px] mx-auto">相手</p>
                             <p className="text-[10px] font-bold mt-0.5 truncate">{partnerItem?.catalog_items?.name}</p>
                         </div>
@@ -616,7 +616,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     <div className="card p-5 space-y-3 animate-fade-in-up delay-1 bg-success/5 border-success/20 border-2">
                         <div className="text-center space-y-2">
                             <p className="text-3xl">🎉</p>
-                            <h2 className="font-black text-success">取引完了！</h2>
+                            <h2 className="font-bold text-success">取引完了！</h2>
                             <p className="text-sm text-muted">お取引ありがとうございました</p>
                         </div>
                     </div>
@@ -626,7 +626,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     <div className="card p-5 space-y-3 animate-fade-in-up delay-1 bg-danger/5 border-danger/20 border-2">
                         <div className="text-center space-y-2">
                             <p className="text-3xl">❌</p>
-                            <h2 className="font-black text-danger">取引キャンセル</h2>
+                            <h2 className="font-bold text-danger">取引キャンセル</h2>
                             <p className="text-sm text-muted">この取引はキャンセルされました</p>
                         </div>
                     </div>

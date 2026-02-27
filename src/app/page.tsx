@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star, ShieldCheck, ArrowRightLeft, Search, TrendingUp } from "lucide-react";
+import { ShieldCheck, ArrowRightLeft, Search, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -102,46 +102,31 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* ===== Hero Banner ===== */}
-      <div className="gradient-hero text-white px-4 py-10 sm:py-16 relative overflow-hidden">
-        <div className="absolute top-4 right-8 w-20 h-20 bg-white/10 rounded-full blur-xl" />
-        <div className="absolute bottom-2 left-12 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
-
-        <div className="container mx-auto px-4 max-w-5xl relative z-10">
-          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 leading-tight animate-fade-in-up">
-                ダブったガチャ、<br />
-                <span className="text-white/90">交換しよう！</span>
+      {/* ===== Hero Banner (compact) ===== */}
+      <div className="bg-primary text-white px-4 py-6 sm:py-8">
+        <div className="container mx-auto max-w-5xl">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 leading-tight">
+                ダブったガチャ、交換しよう！
               </h1>
-              <p className="text-white/80 text-sm sm:text-base mb-8 animate-fade-in-up delay-1 leading-relaxed max-w-xl">
-                カプセルトイの物々交換サービス。<br className="hidden sm:block md:hidden" />
-                送料のみで欲しかったアイテムが手に入る 🎯
+              <p className="text-white/80 text-sm mb-4 leading-relaxed">
+                カプセルトイの物々交換サービス。送料のみで欲しかったアイテムが手に入る。
               </p>
-              <div className="flex flex-wrap justify-center md:justify-start gap-3 animate-fade-in-up delay-2">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2">
                 <Link
                   href="/search"
-                  className="btn bg-white text-primary hover:bg-white/90 px-8 py-3.5 text-base font-bold shadow-xl border-none gap-2"
+                  className="btn bg-white text-primary hover:bg-white/90 px-6 py-2.5 text-sm font-semibold gap-1.5"
                 >
-                  <Search className="h-5 w-5" />
+                  <Search className="h-4 w-4" />
                   探す
                 </Link>
                 <Link
                   href="/sell"
-                  className="btn bg-white/20 text-white hover:bg-white/30 px-8 py-3.5 text-base font-bold backdrop-blur-sm border border-white/20 gap-2"
+                  className="btn bg-white/15 text-white hover:bg-white/25 px-6 py-2.5 text-sm font-semibold border border-white/20 gap-1.5"
                 >
                   出品する
                 </Link>
-              </div>
-            </div>
-            <div className="flex-1 w-full max-w-md md:max-w-none animate-fade-in-up delay-3">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700" />
-                <img
-                  src="/hero-illustration.webp"
-                  alt="ガチャガチャ交換"
-                  className="relative z-10 w-full h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-float"
-                />
               </div>
             </div>
           </div>
@@ -150,36 +135,33 @@ export default function Home() {
 
       {/* ===== Logged-in Dashboard Link ===== */}
       {user && (
-        <div className="container mx-auto max-w-5xl px-4 -mt-5 relative z-20 animate-bounce-in delay-3">
+        <div className="container mx-auto max-w-5xl px-4 -mt-4 relative z-20">
           <Link
             href="/dashboard"
-            className="card p-4 flex items-center gap-3 bg-surface border-2 border-primary/10 hover:border-primary/30 transition-all"
+            className="card p-3 flex items-center gap-3 hover:shadow-md transition-shadow"
           >
-            <div className="bg-primary text-white p-2.5 rounded-2xl">
-              <ArrowRightLeft className="h-5 w-5" />
+            <div className="bg-primary text-white p-2 rounded-lg">
+              <ArrowRightLeft className="h-4 w-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm">取引ダッシュボード</p>
+              <p className="font-semibold text-sm">取引ダッシュボード</p>
               <p className="text-xs text-muted">交換の進行状況を確認する</p>
             </div>
-            <span className="text-xs text-primary font-bold">確認する →</span>
+            <ChevronRight className="h-4 w-4 text-muted" />
           </Link>
         </div>
       )}
 
-      {/* ===== Category Circles (Mercari-style) ===== */}
+      {/* ===== Category (Manufacturer) ===== */}
       {manufacturers.length > 0 && (
-        <div className="container mx-auto max-w-5xl px-4 pt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-black flex items-center gap-1.5">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              メーカーから探す
-            </h2>
-            <Link href="/search" className="text-xs text-primary font-bold hover:underline">
-              すべて見る →
+        <div className="container mx-auto max-w-5xl px-4 pt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold">メーカーから探す</h2>
+            <Link href="/search" className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5">
+              すべて見る <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
             {manufacturers.map((mfg) => (
               <Link
                 key={mfg}
@@ -187,7 +169,7 @@ export default function Home() {
                 className="category-circle"
               >
                 <div className="icon-wrap">
-                  <span className="text-lg">🎰</span>
+                  <span className="text-base">🎰</span>
                 </div>
                 <span>{mfg}</span>
               </Link>
@@ -196,31 +178,31 @@ export default function Home() {
         </div>
       )}
 
-      {/* ===== Item Grid (3 columns like Mercari) ===== */}
-      <div className="container mx-auto max-w-5xl px-4 pt-6 pb-12">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-black">🆕 新着アイテム</h2>
-          <Link href="/search" className="text-xs text-primary font-bold hover:underline">
-            すべて見る →
+      {/* ===== Item Grid ===== */}
+      <div className="container mx-auto max-w-5xl px-4 pt-5 pb-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold">新着アイテム</h2>
+          <Link href="/search" className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5">
+            すべて見る <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           </div>
         ) : items.length === 0 ? (
-          <div className="empty-state card py-16">
-            <span className="text-4xl">🎰</span>
+          <div className="empty-state card py-12">
+            <p className="text-2xl">🎰</p>
             <p className="message">まだアイテムがありません</p>
-            <Link href="/sell" className="btn btn-primary px-6 py-3 inline-flex">
+            <Link href="/sell" className="btn btn-primary px-5 py-2.5 text-sm inline-flex">
               最初のアイテムを出品する
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
-            {items.map((item, index) => (
-              <div key={item.id} className={`animate-fade-in-up delay-${(index % 6) + 1}`}>
+            {items.map((item) => (
+              <div key={item.id}>
                 <ItemCard
                   id={item.id}
                   image={item.images?.[0] || ""}
@@ -240,23 +222,25 @@ export default function Home() {
         )}
       </div>
 
-      {/* ===== How It Works (for non-logged-in) ===== */}
+      {/* ===== How It Works (non-logged-in only) ===== */}
       {!user && (
-        <div className="gradient-hero-soft py-12 px-4">
+        <div className="bg-background py-8 px-4 border-t border-border">
           <div className="container mx-auto max-w-3xl">
-            <h2 className="text-lg font-black text-center mb-8">交換のながれ</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <h2 className="text-sm font-bold text-center mb-6">交換のながれ</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { emoji: "🔍", title: "1. 探す", desc: "欲しいアイテムを検索して見つける" },
-                { emoji: "🤝", title: "2. 提案する", desc: "自分のアイテムを選んで交換を提案" },
-                { emoji: "📦", title: "3. 交換する", desc: "住所を入力して発送・受取で完了" },
+                { icon: <Search className="h-5 w-5 text-primary" />, title: "1. 探す", desc: "欲しいアイテムを検索して見つける" },
+                { icon: <ArrowRightLeft className="h-5 w-5 text-primary" />, title: "2. 提案する", desc: "自分のアイテムを選んで交換を提案" },
+                { icon: <ShieldCheck className="h-5 w-5 text-primary" />, title: "3. 交換する", desc: "住所を入力して発送・受取で完了" },
               ].map((step, i) => (
                 <div
                   key={i}
-                  className={`card p-6 text-center space-y-2 animate-fade-in-up delay-${i + 1}`}
+                  className="card p-5 text-center space-y-2"
                 >
-                  <p className="text-3xl">{step.emoji}</p>
-                  <h3 className="font-black text-sm">{step.title}</h3>
+                  <div className="w-10 h-10 mx-auto bg-primary-light rounded-lg flex items-center justify-center">
+                    {step.icon}
+                  </div>
+                  <h3 className="font-semibold text-sm">{step.title}</h3>
                   <p className="text-xs text-muted">{step.desc}</p>
                 </div>
               ))}

@@ -93,7 +93,7 @@ export default function HelpPage() {
             <div className="container mx-auto max-w-2xl px-4 py-6 space-y-8">
                 {/* Trade Flow Visual */}
                 <div className="card p-5 animate-fade-in-up">
-                    <h2 className="text-sm font-black mb-4 flex items-center gap-2">
+                    <h2 className="text-sm font-bold mb-4 flex items-center gap-2">
                         <ArrowRightLeft className="h-4 w-4 text-primary" />
                         交換の流れ
                     </h2>
@@ -119,7 +119,7 @@ export default function HelpPage() {
                 {/* FAQ sections */}
                 {FAQ_SECTIONS.map((section, si) => (
                     <section key={si} className={`animate-fade-in-up delay-${si + 1}`}>
-                        <h2 className={`text-base font-black mb-4 flex items-center gap-2 ${section.color}`}>
+                        <h2 className={`text-base font-bold mb-4 flex items-center gap-2 ${section.color}`}>
                             <section.icon className="h-5 w-5" />
                             {section.title}
                         </h2>
@@ -156,7 +156,7 @@ export default function HelpPage() {
 
                 {/* Contact */}
                 <div className="card p-6 text-center bg-primary/5 border border-primary/10 animate-fade-in-up delay-3">
-                    <h3 className="font-black mb-2 text-primary">解決しない場合は</h3>
+                    <h3 className="font-bold mb-2 text-primary">解決しない場合は</h3>
                     <p className="text-sm text-muted mb-4">
                         運営サポートまで直接お問い合わせください
                     </p>
