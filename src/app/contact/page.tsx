@@ -150,19 +150,19 @@ export default function ContactPage() {
                             className="w-full bg-background border border-border rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                         />
                     </div>
-                </div>
 
-                <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="btn btn-primary w-full py-4 text-base disabled:opacity-50"
-                >
-                    {submitting ? (
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                        <><Send className="h-4 w-4" /> 送信する</>
-                    )}
-                </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="btn btn-primary w-full py-4 text-base disabled:opacity-50"
+                    >
+                        {submitting ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <><Send className="h-4 w-4" /> 送信する</>
+                        )}
+                    </button>
+                </div>
             </div>
         </div>
     );
