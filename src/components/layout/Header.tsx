@@ -109,13 +109,20 @@ export function Header() {
               </div>
             </>
           ) : (
-            <Link
-              href="/login"
-              className="btn btn-primary text-xs px-4 py-2 gap-1.5"
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              ログイン
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login"
+                className="text-xs font-semibold text-muted hover:text-foreground transition-colors hidden sm:block"
+              >
+                ログイン
+              </Link>
+              <Link
+                href="/login?tab=register"
+                className="btn btn-primary text-xs px-4 py-2"
+              >
+                無料登録
+              </Link>
+            </div>
           )}
         </div>
       </div>

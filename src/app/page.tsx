@@ -224,26 +224,74 @@ export default function Home() {
 
       {/* ===== How It Works (non-logged-in only) ===== */}
       {!user && (
-        <div className="bg-background py-8 px-4 border-t border-border">
-          <div className="container mx-auto max-w-3xl">
-            <h2 className="text-sm font-bold text-center mb-6">交換のながれ</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white py-10 px-4 border-t border-border">
+          <div className="container mx-auto max-w-2xl">
+            <h2 className="text-base font-bold text-center mb-2">交換のながれ</h2>
+            <p className="text-xs text-muted text-center mb-8">お金のやり取りは一切なし。送料だけで交換できます。</p>
+
+            <div className="space-y-0">
               {[
-                { icon: <Search className="h-5 w-5 text-primary" />, title: "1. 探す", desc: "欲しいアイテムを検索して見つける" },
-                { icon: <ArrowRightLeft className="h-5 w-5 text-primary" />, title: "2. 提案する", desc: "自分のアイテムを選んで交換を提案" },
-                { icon: <ShieldCheck className="h-5 w-5 text-primary" />, title: "3. 交換する", desc: "住所を入力して発送・受取で完了" },
-              ].map((step, i) => (
-                <div
-                  key={i}
-                  className="card p-5 text-center space-y-2"
-                >
-                  <div className="w-10 h-10 mx-auto bg-primary-light rounded-lg flex items-center justify-center">
-                    {step.icon}
+                {
+                  num: "1",
+                  title: "無料登録する",
+                  desc: "メールアドレスとパスワードだけで登録完了。30秒で始められます。",
+                  detail: null,
+                },
+                {
+                  num: "2",
+                  title: "アイテムを登録する",
+                  desc: "ダブったガチャガチャをカタログから選んで登録。写真と状態（未開封 / 開封済み）を設定します。",
+                  detail: null,
+                },
+                {
+                  num: "3",
+                  title: "欲しいアイテムを探す",
+                  desc: "メーカーやシリーズで検索。気になるアイテムが見つかったら、出品者の評価もチェックできます。",
+                  detail: null,
+                },
+                {
+                  num: "4",
+                  title: "交換を提案する",
+                  desc: "欲しいアイテムを見つけたら「交換を提案」ボタンを押して、自分の出品アイテムを選んで提案を送ります。",
+                  detail: "相手が承認すると取引成立。お互いの住所を登録して発送に進みます。",
+                },
+                {
+                  num: "5",
+                  title: "発送・受取で完了",
+                  desc: "お互いに商品を発送し、届いたら「受取確認」を押して取引完了。相手への評価もお忘れなく。",
+                  detail: "送料は各自負担です。定形外郵便やネコポスなど、発送方法は事前にメッセージで相談できます。",
+                },
+              ].map((step, i, arr) => (
+                <div key={i} className="flex gap-4">
+                  {/* Timeline */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold shrink-0">
+                      {step.num}
+                    </div>
+                    {i < arr.length - 1 && (
+                      <div className="w-px flex-1 bg-border my-1" />
+                    )}
                   </div>
-                  <h3 className="font-semibold text-sm">{step.title}</h3>
-                  <p className="text-xs text-muted">{step.desc}</p>
+                  {/* Content */}
+                  <div className={`flex-1 ${i < arr.length - 1 ? "pb-6" : "pb-2"}`}>
+                    <h3 className="font-semibold text-sm mb-1">{step.title}</h3>
+                    <p className="text-xs text-muted leading-relaxed">{step.desc}</p>
+                    {step.detail && (
+                      <p className="text-xs text-muted/70 mt-1 leading-relaxed">{step.detail}</p>
+                    )}
+                  </div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-8 text-center">
+              <Link
+                href="/login?tab=register"
+                className="btn btn-primary px-8 py-3 text-sm font-semibold"
+              >
+                無料で始める
+              </Link>
+              <p className="text-[10px] text-muted mt-2">登録は30秒・完全無料</p>
             </div>
           </div>
         </div>
