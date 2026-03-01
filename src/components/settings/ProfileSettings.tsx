@@ -55,13 +55,14 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
         async function load() {
             const { data: profile } = await supabase
                 .from("profiles")
-                .select("display_name, avatar_url, phone_verified")
+                .select("display_name, avatar_url, phone_verified, phone")
                 .eq("id", user!.id)
                 .single();
             if (profile) {
                 setDisplayName(profile.display_name || "");
                 setAvatarUrl(profile.avatar_url);
                 setPhoneVerified(profile.phone_verified || false);
+                setPhoneNumber(profile.phone || "");
             }
 
             const { data: addr } = await supabase
@@ -178,6 +179,8 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
 
         const { error } = await supabase.from("user_addresses").upsert({
             user_id: user.id,
+            name: displayName || "未設定",
+            phone: phoneNumber || "00000000000",
             ...address,
             updated_at: new Date().toISOString(),
         }, { onConflict: "user_id" });
@@ -219,7 +222,7 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                     ))}
                 </div>
 
-                <div className="p-4 space-y-4">
+                <div className="p-4 pb-24 space-y-4">
                     {/* ===== Profile Tab ===== */}
                     {activeTab === "profile" && (
                         <div className="space-y-4 animate-fade-in">

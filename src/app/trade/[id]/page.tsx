@@ -159,8 +159,8 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         fetchTrade();
 
         // リアルタイムメッセージ購読
-        const channel = supabase
-            .channel(`trade-${id}`)
+        const messageChannel = supabase
+            .channel(`trade-${id}-msgs`)
             .on(
                 "postgres_changes",
                 { event: "INSERT", schema: "public", table: "trade_messages", filter: `trade_id=eq.${id}` },
@@ -170,8 +170,22 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             )
             .subscribe();
 
+        // リアルタイム住所購読
+        const addressChannel = supabase
+            .channel(`trade-${id}-addrs`)
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "user_addresses" },
+                (payload) => {
+                    // Refetch trade to update addresses properly through RLS policy evaluation
+                    fetchTrade();
+                }
+            )
+            .subscribe();
+
         return () => {
-            supabase.removeChannel(channel);
+            supabase.removeChannel(messageChannel);
+            supabase.removeChannel(addressChannel);
         };
     }, [id, user, supabase]);
 
@@ -434,8 +448,15 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                         {/* 相手の住所表示と発送アクション */}
                         {myAddress && (
                             !partnerAddress ? (
-                                <div className="card p-5 text-center space-y-2 border-dashed border-2">
-                                    <p className="text-sm font-bold text-muted">相手の住所入力を待っています...</p>
+                                <div className="card p-5 text-center space-y-2 border-dashed border-2 relative">
+                                    {(!myAddress.phone || myAddress.phone === "00000000000") && (
+                                        <div className="absolute top-0 left-0 right-0 -mt-2 mx-4">
+                                            <div className="bg-danger text-white text-[10px] py-1 px-2 rounded-lg font-bold shadow-sm flex items-center justify-center gap-1">
+                                                <AlertTriangle className="h-3 w-3" /> 取引の進行にはプロフィール設定からの電話番号認証が必要です
+                                            </div>
+                                        </div>
+                                    )}
+                                    <p className="text-sm font-bold text-muted mt-2">相手の住所入力を待っています...</p>
                                     <p className="text-[10px] text-muted">相手が入力を完了すると、ここに発送先が表示されます</p>
                                 </div>
                             ) : (
