@@ -139,6 +139,7 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                 : `+81${cleanPhone.replace(/^0/, "")}`;
 
         try {
+            console.log("verifyOtp payload:", { phone: formatted, token: otpCode, type: "phone_change" });
             const { error } = await supabase.auth.verifyOtp({
                 phone: formatted,
                 token: otpCode,
