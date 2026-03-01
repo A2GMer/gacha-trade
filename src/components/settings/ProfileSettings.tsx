@@ -104,7 +104,14 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
         setPhoneLoading(true);
         setPhoneError("");
 
-        const formatted = phoneNumber.startsWith("+") ? phoneNumber : `+81${phoneNumber.replace(/^0/, "")}`;
+        // Remove any non-numeric characters except +
+        const cleanPhone = phoneNumber.replace(/[^\d+]/g, "");
+        // If it starts with +, use it as is. If starts with 81, prepend +. Otherwise assume Japanese local starting with 0.
+        const formatted = cleanPhone.startsWith("+")
+            ? cleanPhone
+            : cleanPhone.startsWith("81")
+                ? `+${cleanPhone}`
+                : `+81${cleanPhone.replace(/^0/, "")}`;
 
         try {
             const { error } = await supabase.auth.updateUser({ phone: formatted });
@@ -124,7 +131,12 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
         setPhoneLoading(true);
         setPhoneError("");
 
-        const formatted = phoneNumber.startsWith("+") ? phoneNumber : `+81${phoneNumber.replace(/^0/, "")}`;
+        const cleanPhone = phoneNumber.replace(/[^\d+]/g, "");
+        const formatted = cleanPhone.startsWith("+")
+            ? cleanPhone
+            : cleanPhone.startsWith("81")
+                ? `+${cleanPhone}`
+                : `+81${cleanPhone.replace(/^0/, "")}`;
 
         try {
             const { error } = await supabase.auth.verifyOtp({
