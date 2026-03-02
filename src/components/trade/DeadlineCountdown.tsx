@@ -56,11 +56,17 @@ function formatRemaining(ms: number): string {
 
 export function DeadlineCountdown({ status, acceptedAt, addressLockedAt, shippedAt, onExpired }: DeadlineCountdownProps) {
     const [now, setNow] = useState(Date.now());
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const timer = setInterval(() => setNow(Date.now()), 60 * 1000); // 1分ごとに更新
         return () => clearInterval(timer);
     }, []);
+
+    if (!mounted) {
+        return <div className="rounded-2xl p-3 bg-surface border border-border h-16 animate-pulse" />;
+    }
 
     const info = getDeadlineInfo(status, acceptedAt, addressLockedAt, shippedAt);
     if (!info) return null;

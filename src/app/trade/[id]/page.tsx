@@ -84,6 +84,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     const [isSavingAddr, setIsSavingAddr] = useState(false);
 
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
     const [sendingMessage, setSendingMessage] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -138,7 +139,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                         .from("user_addresses")
                         .select("*")
                         .eq("user_id", user!.id)
-                        .single();
+                        .maybeSingle();
 
                     if (myAddr) {
                         setMyAddress(myAddr as UserAddress);
@@ -150,7 +151,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                         .from("user_addresses")
                         .select("*")
                         .eq("user_id", partnerId)
-                        .single();
+                        .maybeSingle();
 
                     if (pAddr) {
                         setPartnerAddress(pAddr as UserAddress);
@@ -170,12 +171,16 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     if (disputeErr) console.error("Dispute fetch error:", disputeErr);
 
                     if (dispute) {
+                        // We need to add state for this if it isn't there, waiting, let's just make sure it's valid
+                        // Wait, did the user add setIsDisputeReporter? Let me check if they did. Yes it seems they did.
                         setIsDisputeReporter(dispute.reporter_id === user!.id);
                     } else {
-                        // fallback or just log
                         console.warn("No OPEN dispute found for this trade.", id);
                     }
                 }
+            } else if (error) {
+                console.error("Failed to fetch trade:", error);
+                setFetchError(error.message || "取引情報の取得に失敗しました。");
             }
 
             // メッセージ取得
@@ -384,6 +389,21 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         setCancelingDispute(false);
     };
 
+    if (fetchError) {
+        return (
+            <div className="bg-background min-h-screen flex flex-col items-center justify-center p-4">
+                <div className="card p-6 border-danger/20 border-2 text-center space-y-4 max-w-md w-full">
+                    <AlertTriangle className="h-12 w-12 text-danger mx-auto" />
+                    <h2 className="text-lg font-bold">取引情報を取得できませんでした</h2>
+                    <p className="text-sm text-foreground/80">{fetchError}</p>
+                    <div className="bg-surface p-3 rounded-lg text-xs text-left text-muted font-mono whitespace-pre-wrap break-all">
+                        {`Hint: データベースに proposer_tracking_number などのカラムが追加されているか確認してください。`}
+                    </div>
+                    <Link href="/trade/proposals" className="btn btn-primary w-full py-3 block">一覧に戻る</Link>
+                </div>
+            </div>
+        );
+    }
 
     if (loading || !trade || !user) {
         return (
