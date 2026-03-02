@@ -55,14 +55,14 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
         async function load() {
             const { data: profile } = await supabase
                 .from("profiles")
-                .select("display_name, avatar_url, phone_verified, phone")
+                .select("display_name, avatar_url, phone_verified")
                 .eq("id", user!.id)
                 .single();
             if (profile) {
                 setDisplayName(profile.display_name || "");
                 setAvatarUrl(profile.avatar_url);
                 setPhoneVerified(profile.phone_verified || false);
-                setPhoneNumber(profile.phone || "");
+                setPhoneNumber(user!.phone || "");
             }
 
             const { data: addr } = await supabase
