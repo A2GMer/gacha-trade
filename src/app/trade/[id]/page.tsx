@@ -472,30 +472,49 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             </div>
 
             {/* Progress Bar */}
-            <div className="bg-surface px-4 py-4 border-b border-border">
-                <div className="flex items-center justify-between">
-                    {ALL_STEPS.map((step, i) => (
-                        <div key={step.id} className="flex items-center gap-0">
-                            <div className="flex flex-col items-center gap-1">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${i <= currentStepIndex
-                                    ? "bg-primary text-white shadow-md"
-                                    : "bg-background text-muted border border-border"
-                                    }`}>
-                                    {i < currentStepIndex ? (
-                                        <CheckCircle2 className="h-4 w-4" />
-                                    ) : (
-                                        <span>{step.icon}</span>
-                                    )}
+            <div className="bg-surface px-2 sm:px-4 pt-6 pb-10 border-b border-border shadow-sm relative z-10">
+                <div className="flex items-center justify-between max-w-2xl mx-auto">
+                    {ALL_STEPS.map((step, i) => {
+                        const isCompleted = i < currentStepIndex;
+                        const isCurrent = i === currentStepIndex;
+                        const isFuture = i > currentStepIndex;
+
+                        return (
+                            <div key={step.id} className="flex items-center relative flex-1 first:flex-initial last:flex-initial">
+                                {/* Step Circle */}
+                                <div className="relative flex flex-col items-center z-10">
+                                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base transition-all duration-500 ${isCompleted
+                                        ? "bg-primary text-white shadow-md scale-100"
+                                        : isCurrent
+                                            ? "bg-primary text-white shadow-lg shadow-primary/30 ring-4 ring-primary/20 animate-pulse scale-110"
+                                            : "bg-background text-muted border-2 border-border scale-95"
+                                        }`}>
+                                        {isCompleted ? (
+                                            <CheckCircle2 className="h-5 w-5 animate-scale-in" />
+                                        ) : (
+                                            <span className={`${isCurrent ? "font-bold" : "opacity-70"}`}>{step.icon}</span>
+                                        )}
+                                    </div>
+                                    <span className={`absolute top-full mt-2 w-20 text-center text-[9px] sm:text-[10px] font-bold whitespace-pre-line leading-tight transition-all duration-500 ${isCompleted || isCurrent ? "text-primary" : "text-muted"
+                                        }`}>
+                                        {step.label}
+                                    </span>
                                 </div>
-                                <span className={`text-[9px] font-bold whitespace-pre-line text-center ${i <= currentStepIndex ? "text-primary" : "text-muted"}`}>
-                                    {step.label}
-                                </span>
+
+                                {/* Connecting Line */}
+                                {i < ALL_STEPS.length - 1 && (
+                                    <div className="flex-1 min-w-[10px] sm:min-w-[20px] mx-1 sm:mx-2 relative h-1 sm:h-1.5 bg-border rounded-full overflow-hidden">
+                                        <div
+                                            className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-1000 ease-in-out"
+                                            style={{
+                                                width: isCompleted ? "100%" : isCurrent ? "50%" : "0%"
+                                            }}
+                                        />
+                                    </div>
+                                )}
                             </div>
-                            {i < ALL_STEPS.length - 1 && (
-                                <div className={`w-4 sm:w-8 h-0.5 rounded mx-0.5 mb-4 ${i < currentStepIndex ? "bg-primary" : "bg-border"}`} />
-                            )}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 

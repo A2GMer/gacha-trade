@@ -47,7 +47,7 @@ export default function ContactPage() {
         if (insertError) {
             console.error("Contact form error:", insertError);
             if (insertError.code === "42P01") {
-                setError("お問い合わせテーブルが未作成です。管理者に連絡してください。");
+                setError("お問い合わせ情報の保存先（contact_messagesテーブル）が作成されていません。管理者に連絡するか、マイグレーション（phase1_migration.sql）を実行してください。");
             } else if (insertError.code === "42501") {
                 setError("権限エラー: ログインしてから再度お試しください。");
             } else {
