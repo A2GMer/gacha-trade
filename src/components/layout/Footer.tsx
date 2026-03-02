@@ -21,7 +21,7 @@ export function Footer() {
                             <h3 className="font-bold text-xs text-foreground/50 uppercase tracking-widest mb-4">ガイド</h3>
                             <ul className="space-y-3">
                                 <li><Link href="/help" className="text-sm font-medium hover:text-primary transition-colors">ヘルプ・ガイド</Link></li>
-                                <li><Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">運営者情報</Link></li>
+                                <li><Link href="/tokushoho" className="text-sm font-medium hover:text-primary transition-colors">特定商取引法に基づく表記</Link></li>
                             </ul>
                         </div>
                         <div>
