@@ -106,6 +106,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
 
     // レビュー
     const [showReview, setShowReview] = useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
 
     useEffect(() => {
         if (!user) return;
@@ -176,6 +177,20 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                         setIsDisputeReporter(dispute.reporter_id === user!.id);
                     } else {
                         console.warn("No OPEN dispute found for this trade.", id);
+                    }
+                }
+
+                // すでにレビュー済みかどうかを確認
+                if (td.status === "COMPLETED") {
+                    const { data: review } = await supabase
+                        .from("reviews")
+                        .select("id")
+                        .eq("trade_id", id)
+                        .eq("reviewer_id", user!.id)
+                        .maybeSingle();
+
+                    if (review) {
+                        setHasReviewed(true);
                     }
                 }
             } else if (error) {
@@ -802,6 +817,18 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                             <h2 className="font-bold text-success">取引完了！</h2>
                             <p className="text-sm text-muted">お取引ありがとうございました</p>
                         </div>
+                        {!hasReviewed ? (
+                            <button
+                                onClick={() => setShowReview(true)}
+                                className="btn btn-primary w-full py-3 mt-4"
+                            >
+                                <Star className="h-4 w-4" /> 取引相手を評価する
+                            </button>
+                        ) : (
+                            <div className="text-center p-3 bg-surface rounded-xl border border-border mt-4">
+                                <p className="text-sm font-bold text-muted">評価済みです</p>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -889,17 +916,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     </div>
                 </div>
             )}
-            {/* Review Modal */}
-            {trade.status === "COMPLETED" && (
-                <div className="glass border-t border-white/20 p-3 pb-[env(safe-area-inset-bottom,12px)] sm:pb-3">
-                    <button
-                        onClick={() => setShowReview(true)}
-                        className="btn btn-primary w-full py-3 max-w-2xl mx-auto"
-                    >
-                        <Star className="h-4 w-4" /> 取引相手を評価する
-                    </button>
-                </div>
-            )}
+
 
             {showReview && trade && partner && (
                 <ReviewModal
@@ -907,7 +924,10 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     targetUserId={isProposer ? trade.receiver_id : trade.proposer_id}
                     targetUserName={partner.display_name || "相手"}
                     onClose={() => setShowReview(false)}
-                    onComplete={() => setShowReview(false)}
+                    onComplete={() => {
+                        setShowReview(false);
+                        setHasReviewed(true);
+                    }}
                 />
             )}
 

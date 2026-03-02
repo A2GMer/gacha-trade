@@ -29,7 +29,7 @@ export function ReviewModal({ tradeId, targetUserId, targetUserName, onClose, on
         const { error } = await supabase.from("reviews").insert({
             trade_id: tradeId,
             reviewer_id: user.id,
-            reviewed_id: targetUserId,
+            reviewee_id: targetUserId,
             rating,
             comment: comment.trim() || null,
         });
@@ -39,7 +39,7 @@ export function ReviewModal({ tradeId, targetUserId, targetUserName, onClose, on
             const { data: reviews } = await supabase
                 .from("reviews")
                 .select("rating")
-                .eq("reviewed_id", targetUserId);
+                .eq("reviewee_id", targetUserId);
 
             if (reviews && reviews.length > 0) {
                 const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
@@ -89,8 +89,8 @@ export function ReviewModal({ tradeId, targetUserId, targetUserName, onClose, on
                                     >
                                         <Star
                                             className={`h-8 w-8 transition-colors ${star <= (hovered || rating)
-                                                    ? "fill-yellow-400 text-yellow-400"
-                                                    : "text-border"
+                                                ? "fill-yellow-400 text-yellow-400"
+                                                : "text-border"
                                                 }`}
                                         />
                                     </button>
