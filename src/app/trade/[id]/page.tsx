@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ShippingGuide } from "@/components/trade/ShippingGuide";
 import { ReviewModal } from "@/components/trade/ReviewModal";
 import { DeadlineCountdown } from "@/components/trade/DeadlineCountdown";
+import { DepositModal } from "@/components/trade/DepositModal";
 import { lookupPostalCode } from "@/lib/postal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
@@ -45,6 +46,8 @@ interface TradeData {
     receiver_item: { id: string; images: string[]; catalog_items: { name: string } };
     proposer_profile: { display_name: string; rating_avg: number };
     receiver_profile: { display_name: string; rating_avg: number };
+    proposer_payment_intent_id: string | null;
+    receiver_payment_intent_id: string | null;
 }
 
 interface Message {
@@ -89,9 +92,16 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     const [inspectionResult, setInspectionResult] = useState<"match" | "mismatch" | null>(null);
     const [disputeReason, setDisputeReason] = useState("");
     const [filingDispute, setFilingDispute] = useState(false);
+    const [cancelingDispute, setCancelingDispute] = useState(false);
+    const [isDisputeReporter, setIsDisputeReporter] = useState(false);
 
     // 追跡番号
     const [trackingNumber, setTrackingNumber] = useState("");
+    const [trackingError, setTrackingError] = useState("");
+
+    // デポジット
+    const [showDepositModal, setShowDepositModal] = useState(false);
+    const [isAccepting, setIsAccepting] = useState(false);
 
     // レビュー
     const [showReview, setShowReview] = useState(false);
@@ -108,7 +118,9 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
           proposer_item:proposer_item_id (id, images, catalog_items (name)),
           receiver_item:receiver_item_id (id, images, catalog_items (name)),
           proposer_profile:proposer_id (display_name, rating_avg),
-          receiver_profile:receiver_id (display_name, rating_avg)
+          receiver_profile:receiver_id (display_name, rating_avg),
+          proposer_tracking_number, receiver_tracking_number,
+          proposer_payment_intent_id, receiver_payment_intent_id
         `)
                 .eq("id", id)
                 .single();
@@ -142,6 +154,26 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
 
                     if (pAddr) {
                         setPartnerAddress(pAddr as UserAddress);
+                    }
+                }
+
+                // 紛争状態の場合、自分が報告者かどうかを確認する
+                if (td.status === "DISPUTE") {
+                    const { data: dispute, error: disputeErr } = await supabase
+                        .from("disputes")
+                        .select("reporter_id")
+                        .eq("trade_id", id)
+                        .eq("status", "OPEN")
+                        .limit(1)
+                        .maybeSingle();
+
+                    if (disputeErr) console.error("Dispute fetch error:", disputeErr);
+
+                    if (dispute) {
+                        setIsDisputeReporter(dispute.reporter_id === user!.id);
+                    } else {
+                        // fallback or just log
+                        console.warn("No OPEN dispute found for this trade.", id);
                     }
                 }
             }
@@ -220,6 +252,13 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     };
 
     const updateStatus = async (newStatus: string) => {
+        // If accepting, show deposit modal instead of immediately updating status
+        if (newStatus === "ACCEPTED") {
+            setIsAccepting(true);
+            setShowDepositModal(true);
+            return;
+        }
+
         const { error } = await supabase
             .from("trades")
             .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -230,10 +269,50 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         }
     };
 
+    const handleDepositSuccess = async (paymentIntentId: string) => {
+        if (!trade || !user) return;
+        setShowDepositModal(false);
+
+        // Fetch latest trade to ensure we don't overwrite other changes
+        const { data: latestTrade } = await supabase.from("trades").select("*").eq("id", id).single();
+        if (!latestTrade) return;
+
+        const isProposer = user.id === trade.proposer_id;
+        const updatePayload: any = {};
+
+        if (isProposer) {
+            updatePayload.proposer_payment_intent_id = paymentIntentId;
+        } else {
+            updatePayload.receiver_payment_intent_id = paymentIntentId;
+        }
+
+        if (isAccepting && latestTrade.status === "PROPOSED") {
+            updatePayload.status = "ACCEPTED";
+        }
+
+        const { error } = await supabase.from("trades").update({ ...updatePayload, updated_at: new Date().toISOString() }).eq("id", id);
+
+        if (!error) {
+            setTrade({ ...trade, ...updatePayload, status: updatePayload.status || trade.status });
+            setIsAccepting(false);
+        }
+    };
+
     const markAsShipped = async () => {
         if (!trade || !user) return;
+        setTrackingError("");
+
+        // 追跡番号のバリデーション (9〜14桁の数字)
+        const cleanedTrackingNumber = trackingNumber.replace(/[^0-9]/g, "");
+        if (!cleanedTrackingNumber || cleanedTrackingNumber.length < 9 || cleanedTrackingNumber.length > 14) {
+            setTrackingError("正しい追跡番号（9〜14桁の数字）を入力してください。");
+            return;
+        }
+
         const isProposer = user.id === trade.proposer_id;
-        const updatePayload: any = isProposer ? { proposer_shipped: true } : { receiver_shipped: true };
+        const updatePayload: any = isProposer
+            ? { proposer_shipped: true, proposer_tracking_number: cleanedTrackingNumber }
+            : { receiver_shipped: true, receiver_tracking_number: cleanedTrackingNumber };
 
         const partnerShipped = isProposer ? trade.receiver_shipped : trade.proposer_shipped;
         if (partnerShipped) {
@@ -275,8 +354,34 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         });
         await supabase.from("trades").update({ status: "DISPUTE", updated_at: new Date().toISOString() }).eq("id", id);
         setTrade({ ...trade, status: "DISPUTE" });
+        setIsDisputeReporter(true);
         setShowInspection(false);
         setFilingDispute(false);
+    };
+
+    const cancelDispute = async () => {
+        if (!trade || !user) return;
+        setCancelingDispute(true);
+        // Find existing open dispute
+        const { data: dispute } = await supabase
+            .from("disputes")
+            .select("id")
+            .eq("trade_id", trade.id)
+            .eq("reporter_id", user.id)
+            .eq("status", "OPEN")
+            .limit(1)
+            .maybeSingle();
+
+        if (dispute) {
+            await supabase.from("disputes").update({ status: "RESOLVED" }).eq("id", dispute.id);
+        }
+
+        // Revert trade status to SHIPPED
+        await supabase.from("trades").update({ status: "SHIPPED", updated_at: new Date().toISOString() }).eq("id", id);
+
+        setTrade({ ...trade, status: "SHIPPED" });
+        setDisputeReason("");
+        setCancelingDispute(false);
     };
 
 
@@ -300,6 +405,10 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     const partnerReceived = isProposer ? trade.receiver_received : trade.proposer_received;
 
     const currentStepIndex = STEP_INDEX[trade.status] ?? 0;
+
+    const myDeposit = isProposer ? trade.proposer_payment_intent_id : trade.receiver_payment_intent_id;
+    const partnerDeposit = isProposer ? trade.receiver_payment_intent_id : trade.proposer_payment_intent_id;
+    const bothDeposited = Boolean(trade.proposer_payment_intent_id && trade.receiver_payment_intent_id);
 
     const formatTime = (dateStr: string) => {
         const d = new Date(dateStr);
@@ -410,8 +519,32 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     </div>
                 )}
 
-                {/* ACCEPTED (住所登録と発送ステップ) */}
-                {["ACCEPTED", "SHIPPED"].includes(trade.status) && (
+                {/* ACCEPTED (デポジット待機) */}
+                {trade.status === "ACCEPTED" && !myDeposit && (
+                    <div className="card p-5 space-y-3 animate-fade-in-up delay-1 border-primary/20 border-2">
+                        <h2 className="text-xs font-bold text-primary uppercase flex items-center gap-1.5 tracking-wider">
+                            🛡️ デポジットの支払いをお願いします
+                        </h2>
+                        <p className="text-sm text-muted">
+                            取引を安全に進めるため、一時預かり金（デポジット）として300円のカード与信枠を確保します。
+                            これは相手が発送しないなどのトラブルを防ぐ目的であり、取引完了時に返金・解放されます。
+                        </p>
+                        <button onClick={() => setShowDepositModal(true)} className="btn btn-primary w-full py-3 mt-2">
+                            デポジットを支払う（300円）
+                        </button>
+                    </div>
+                )}
+
+                {/* ACCEPTED (相手のデポジット待機) */}
+                {trade.status === "ACCEPTED" && myDeposit && !partnerDeposit && (
+                    <div className="card p-5 space-y-3 animate-fade-in-up delay-1 bg-surface border-border">
+                        <p className="text-sm text-center text-muted font-bold">相手のデポジット支払いを待っています...</p>
+                        <p className="text-[10px] text-center text-muted">双方がデポジットを完了すると、住所が開示されます。</p>
+                    </div>
+                )}
+
+                {/* ACCEPTED (住所登録と発送ステップ) -> 双方がデポジット完了している場合のみ表示 */}
+                {["ACCEPTED", "SHIPPED"].includes(trade.status) && bothDeposited && (
                     <div className="space-y-4 animate-fade-in-up delay-1">
 
                         {/* 自分の住所登録 */}
@@ -475,18 +608,24 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                                     {!myShipped ? (
                                         <div className="space-y-2">
                                             <div>
-                                                <label className="text-xs font-bold text-muted mb-1 block flex items-center gap-1">
-                                                    <Hash className="h-3 w-3" /> 追跡番号（任意）
+                                                <label className="text-xs font-bold text-muted mb-1 flex items-center gap-1">
+                                                    <Hash className="h-3 w-3" /> 追跡番号（必須）
                                                 </label>
                                                 <input
                                                     type="text"
                                                     value={trackingNumber}
-                                                    onChange={(e) => setTrackingNumber(e.target.value)}
-                                                    placeholder="追跡番号を入力（任意）"
-                                                    className="w-full bg-background border border-border rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                                                    onChange={(e) => {
+                                                        setTrackingNumber(e.target.value);
+                                                        setTrackingError("");
+                                                    }}
+                                                    placeholder="追跡番号を入力"
+                                                    className={`w-full bg-background border rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 ${trackingError ? 'border-danger focus:border-danger' : 'border-border'}`}
                                                 />
+                                                {trackingError && (
+                                                    <p className="text-danger text-[10px] mt-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{trackingError}</p>
+                                                )}
                                             </div>
-                                            <button onClick={markAsShipped} className="btn bg-accent text-white hover:bg-accent/90 w-full py-3">
+                                            <button onClick={markAsShipped} className="btn bg-accent text-white hover:bg-accent/90 w-full py-3 mt-2">
                                                 <Truck className="h-4 w-4" /> 商品を発送した
                                             </button>
                                         </div>
@@ -591,6 +730,9 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                                                 <div className="bg-danger/5 rounded-xl p-3">
                                                     <p className="text-sm font-bold text-danger">⚠️ アイテムが一致しません</p>
                                                     <p className="text-[10px] text-muted mt-1">問題の内容を記入して報告してください。運営が調査いたします。</p>
+                                                    <p className="text-[9px] text-danger mt-2 font-bold bg-danger/10 p-1.5 rounded-lg border border-danger/20">
+                                                        注意: 虚偽の報告で不当にデポジットの返還を受けようとする行為は固く禁じています。発覚時はアカウント停止および損害賠償請求の対象となります。
+                                                    </p>
                                                 </div>
                                                 <textarea
                                                     value={disputeReason}
@@ -649,6 +791,30 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                             <p className="text-3xl">❌</p>
                             <h2 className="font-bold text-danger">取引キャンセル</h2>
                             <p className="text-sm text-muted">この取引はキャンセルされました</p>
+                        </div>
+                    </div>
+                )}
+
+                {trade.status === "DISPUTE" && (
+                    <div className="card p-5 space-y-3 animate-fade-in-up delay-1 bg-danger/5 border-danger/20 border-2">
+                        <div className="text-center space-y-4">
+                            <h2 className="font-bold text-danger flex items-center justify-center gap-1.5">
+                                <AlertTriangle className="h-5 w-5" /> 取引で問題が報告されました
+                            </h2>
+                            <p className="text-sm text-muted">現在、運営チームが内容を確認しています。<br />相手とのメッセージで解決策を話し合ってください。</p>
+
+                            {isDisputeReporter && (
+                                <div className="pt-2 border-t border-danger/10">
+                                    <p className="text-xs text-muted mb-2">問題が解決した場合や、間違えて報告した場合は取り消すことができます</p>
+                                    <button
+                                        onClick={cancelDispute}
+                                        disabled={cancelingDispute}
+                                        className="btn bg-surface border border-danger/30 text-danger w-full py-3 text-sm disabled:opacity-50"
+                                    >
+                                        {cancelingDispute ? "取り消し中..." : "問題報告を取り消す（受取画面に戻る）"}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -723,6 +889,21 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     onClose={() => setShowReview(false)}
                     onComplete={() => setShowReview(false)}
                 />
+            )}
+
+            {showDepositModal && trade && user && (
+                <div className="absolute top-0 left-0 w-full h-full">
+                    {/* The modal has a fixed overlay, but placing it here ensures it mounts */}
+                    <DepositModal
+                        tradeId={trade.id}
+                        userId={user.id}
+                        onSuccess={handleDepositSuccess}
+                        onCancel={() => {
+                            setShowDepositModal(false);
+                            setIsAccepting(false);
+                        }}
+                    />
+                </div>
             )}
         </div>
     );

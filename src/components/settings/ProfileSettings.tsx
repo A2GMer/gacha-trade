@@ -159,6 +159,20 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
         setPhoneLoading(false);
     };
 
+    const bypassPhoneVerification = async () => {
+        if (!user) return;
+        setPhoneLoading(true);
+        setPhoneError("");
+        try {
+            await supabase.from("profiles").update({ phone_verified: true }).eq("id", user.id);
+            setPhoneVerified(true);
+            setPhoneSuccess(true);
+        } catch (e: any) {
+            setPhoneError("バイパスに失敗しました");
+        }
+        setPhoneLoading(false);
+    };
+
     // ===== Postal Auto-fill =====
     const handlePostalLookup = async () => {
         if (!address.postal_code) return;
@@ -370,6 +384,14 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                                     )}
 
                                     {phoneError && <p className="text-xs text-danger font-bold">{phoneError}</p>}
+
+                                    <button
+                                        onClick={bypassPhoneVerification}
+                                        disabled={phoneLoading}
+                                        className="btn bg-gray-200 text-gray-700 w-full py-2 text-xs font-bold mt-4"
+                                    >
+                                        【開発者用】SMS認証を強制スキップして完了済みにする
+                                    </button>
                                 </>
                             )}
                         </div>
