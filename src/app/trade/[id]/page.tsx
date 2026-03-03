@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
-import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, Star, AlertTriangle, PackageCheck, Camera, X, Hash } from "lucide-react";
+import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, Star, AlertTriangle, PackageCheck, Camera, X, Hash, ImagePlus } from "lucide-react";
 import Link from "next/link";
 import { ShippingGuide } from "@/components/trade/ShippingGuide";
 import { ReviewModal } from "@/components/trade/ReviewModal";
@@ -54,6 +54,7 @@ interface Message {
     id: string;
     sender_id: string;
     content: string;
+    image_url?: string;
     created_at: string;
 }
 
@@ -99,6 +100,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     // 追跡番号
     const [trackingNumber, setTrackingNumber] = useState("");
     const [trackingError, setTrackingError] = useState("");
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     // デポジット
     const [showDepositModal, setShowDepositModal] = useState(false);
@@ -248,13 +250,81 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     const sendMessage = async () => {
         if (!newMessage.trim() || !user || sendingMessage) return;
         setSendingMessage(true);
-        await supabase.from("trade_messages").insert({
+        const insertedData = await supabase.from("trade_messages").insert({
             trade_id: id,
             sender_id: user.id,
             content: newMessage.trim(),
-        });
+        }).select();
+
+        // 通知の送信
+        if (trade && insertedData.data) {
+            const receiverId = user.id === trade.proposer_id ? trade.receiver_id : trade.proposer_id;
+            fetch("/api/internal-notify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    targetUserId: receiverId,
+                    eventType: "NEW_MESSAGE",
+                    tradeId: id
+                })
+            }).catch(e => console.error("Notify failed:", e));
+        }
+
         setNewMessage("");
         setSendingMessage(false);
+    };
+
+    const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0 || !user) return;
+        const file = e.target.files[0];
+
+        // 5MB limit
+        if (file.size > 5 * 1024 * 1024) {
+            alert("画像サイズは5MB以下にしてください。");
+            return;
+        }
+
+        setUploadingImage(true);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${id}/${user.id}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+
+        const { data, error } = await supabase.storage
+            .from("trade_evidences")
+            .upload(fileName, file);
+
+        if (error) {
+            console.error("Image upload error:", error);
+            alert("画像のアップロードに失敗しました。");
+            setUploadingImage(false);
+            return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from("trade_evidences")
+            .getPublicUrl(fileName);
+
+        const insertedImage = await supabase.from("trade_messages").insert({
+            trade_id: id,
+            sender_id: user.id,
+            content: "【画像を送信しました】",
+            image_url: publicUrl,
+        }).select();
+
+        // 通知の送信
+        if (trade && insertedImage.data) {
+            const receiverId = user.id === trade.proposer_id ? trade.receiver_id : trade.proposer_id;
+            fetch("/api/internal-notify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    targetUserId: receiverId,
+                    eventType: "NEW_MESSAGE",
+                    tradeId: id
+                })
+            }).catch(e => console.error("Notify failed:", e));
+        }
+
+        setUploadingImage(false);
     };
 
     const saveAddress = async () => {
@@ -315,6 +385,19 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         if (!error) {
             setTrade({ ...trade, ...updatePayload, status: updatePayload.status || trade.status });
             setIsAccepting(false);
+
+            // もし「自分（提案を受けた側）」が承諾した直後なら、提案者（相手）に通知を送る
+            if (updatePayload.status === "ACCEPTED" && !isProposer) {
+                fetch("/api/internal-notify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        targetUserId: trade.proposer_id,
+                        eventType: "PROPOSAL_ACCEPTED",
+                        tradeId: id
+                    })
+                }).catch(e => console.error("Notify failed:", e));
+            }
         }
     };
 
@@ -351,8 +434,41 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         const updatePayload: any = isProposer ? { proposer_received: true } : { receiver_received: true };
 
         const partnerReceived = isProposer ? trade.receiver_received : trade.proposer_received;
+
+        // 双方が受け取り完了した場合 (COMPLETED)
         if (partnerReceived) {
             updatePayload.status = "COMPLETED";
+
+            // Stripe デポジット（オーソリ）のキャンセル（返金）処理を呼び出す
+            try {
+                // 提案者のデポジットをキャンセル
+                if (trade.proposer_payment_intent_id) {
+                    await fetch("/api/stripe/cancel", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            paymentIntentId: trade.proposer_payment_intent_id,
+                            tradeId: trade.id,
+                            reason: "requested_by_customer" // 正常完了による合意解除
+                        })
+                    }).catch(err => console.error("Failed to cancel proposer deposit:", err));
+                }
+
+                // 受信者のデポジットをキャンセル
+                if (trade.receiver_payment_intent_id) {
+                    await fetch("/api/stripe/cancel", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            paymentIntentId: trade.receiver_payment_intent_id,
+                            tradeId: trade.id,
+                            reason: "requested_by_customer"
+                        })
+                    }).catch(err => console.error("Failed to cancel receiver deposit:", err));
+                }
+            } catch (err) {
+                console.error("Error during deposit cancellation:", err);
+            }
         }
 
         const { error } = await supabase.from("trades").update(updatePayload).eq("id", id);
@@ -373,6 +489,19 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             status: "OPEN",
         });
         await supabase.from("trades").update({ status: "DISPUTE", updated_at: new Date().toISOString() }).eq("id", id);
+
+        // 通知の送信
+        const receiverId = user.id === trade.proposer_id ? trade.receiver_id : trade.proposer_id;
+        fetch("/api/internal-notify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                targetUserId: receiverId,
+                eventType: "DISPUTE_OPENED",
+                tradeId: id
+            })
+        }).catch(e => console.error("Notify failed:", e));
+
         setTrade({ ...trade, status: "DISPUTE" });
         setIsDisputeReporter(true);
         setShowInspection(false);
@@ -902,7 +1031,16 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                                 ? "bg-primary text-white rounded-[20px] rounded-tr-md"
                                 : "bg-surface border border-border rounded-[20px] rounded-tl-md"
                                 }`}>
-                                {m.content}
+                                {m.image_url ? (
+                                    <div className="space-y-2">
+                                        <a href={m.image_url} target="_blank" rel="noopener noreferrer">
+                                            <img src={m.image_url} alt="Evidence" className="rounded-lg max-h-48 object-cover w-full cursor-zoom-in border border-white/10" />
+                                        </a>
+                                        {m.content !== "【画像を送信しました】" && <p>{m.content}</p>}
+                                    </div>
+                                ) : (
+                                    m.content
+                                )}
                                 <p className={`text-[9px] mt-1 ${m.sender_id === user.id ? "text-white/50 text-right" : "text-muted"}`}>
                                     {formatTime(m.created_at)}
                                 </p>
@@ -916,7 +1054,17 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             {/* Message Input */}
             {trade.status !== "COMPLETED" && trade.status !== "CANCELLED" && (
                 <div className="glass border-t border-white/20 p-3 pb-[env(safe-area-inset-bottom,12px)] sm:pb-3">
-                    <div className="flex gap-2 max-w-2xl mx-auto">
+                    <div className="flex gap-2 max-w-2xl mx-auto items-center">
+                        <label className={`p-3 shrink-0 rounded-xl cursor-pointer transition-colors ${uploadingImage ? 'opacity-50 pointer-events-none' : 'hover:bg-primary-light text-primary'}`}>
+                            {uploadingImage ? <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /> : <ImagePlus className="h-5 w-5" />}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={uploadImage}
+                                disabled={uploadingImage}
+                            />
+                        </label>
                         <input
                             type="text"
                             value={newMessage}
@@ -928,7 +1076,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                         <button
                             onClick={sendMessage}
                             disabled={sendingMessage || !newMessage.trim()}
-                            className="btn btn-primary p-3 shrink-0 disabled:opacity-50"
+                            className="btn btn-primary p-3 shrink-0 disabled:opacity-50 rounded-full"
                         >
                             <Send className="h-4 w-4" />
                         </button>

@@ -28,6 +28,7 @@ interface UserProfile {
     rating_avg: number;
     trade_count: number;
     phone_verified: boolean;
+    role: string;
 }
 
 interface ItemStats {
@@ -49,7 +50,7 @@ export default function MyPage() {
         const [profRes, itemsRes] = await Promise.all([
             supabase
                 .from("profiles")
-                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified")
+                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified, role")
                 .eq("id", user.id)
                 .single(),
             supabase
@@ -112,6 +113,10 @@ export default function MyPage() {
         { href: "/contact", icon: MessageSquare, label: "お問い合わせ" },
         { href: "/help", icon: HelpCircle, label: "ヘルプ・ガイド" },
     ];
+
+    if (profile?.role === "admin") {
+        subMenuItems.push({ href: "/admin", icon: ShieldCheck, label: "管理者ダッシュボード" });
+    }
 
     return (
         <div className="bg-background min-h-screen pb-24">

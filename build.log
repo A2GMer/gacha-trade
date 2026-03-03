@@ -1,0 +1,80 @@
+﻿
+> gacha-tore@0.1.0 build
+> next build
+
+笆ｲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+node.exe : 笞 The "mid
+dleware" file conventi
+on is deprecated. Plea
+se use "proxy" instead
+. Learn more: https://
+nextjs.org/docs/messag
+es/middleware-to-proxy
+発生場所 行:1 文字:1
++ & "C:\Program Files\
+nodejs/node.exe" "C:\P
+rogram Files\nodejs/no
+de_mo ...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpecifi
+    ed: (笞 The "middl
+    ew...leware-to-pro
+    xy:String) [], Rem
+    oteException
+    + FullyQualifiedEr
+    rorId : NativeComm
+    andError
+ 
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build
+ failed with 1 errors:
+./src/lib/utils.ts
+Reading source code fo
+r parsing failed
+An unexpected error ha
+ppened while trying to
+ read the source code 
+to parse: failed to co
+nvert rope into string
+
+Caused by:
+- invalid utf-8 sequen
+ce of 1 bytes from ind
+ex 0
+
+Import traces:
+  Client Component Bro
+wser:
+    ./src/lib/utils.ts
+ [Client Component Bro
+wser]
+    ./src/app/admin/co
+ntacts/page.tsx [Clien
+t Component Browser]
+    ./src/app/admin/co
+ntacts/page.tsx [Serve
+r Component]
+
+  Client Component SSR
+:
+    ./src/lib/utils.ts
+ [Client Component SSR
+]
+    ./src/app/admin/co
+ntacts/page.tsx [Clien
+t Component SSR]
+    ./src/app/admin/co
+ntacts/page.tsx [Serve
+r Component]
+
+
+    at ignore-listed f
+rames

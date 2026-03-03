@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Camera, Loader2, MapPin, Phone, ShieldCheck, X, CheckCircle, Search } from "lucide-react";
+import { Camera, Loader2, MapPin, Phone, ShieldCheck, X, CheckCircle, Search, UserMinus, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import { lookupPostalCode, PostalResult } from "@/lib/postal";
@@ -48,7 +48,12 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
     const [saving, setSaving] = useState(false);
     const [profileSaved, setProfileSaved] = useState(false);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
-    const [activeTab, setActiveTab] = useState<"profile" | "phone" | "address">("profile");
+    const [activeTab, setActiveTab] = useState<"profile" | "phone" | "address" | "account">("profile");
+
+    // Delete Account
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
+    const [deleteConfirm, setDeleteConfirm] = useState("");
 
     useEffect(() => {
         if (!user) return;
@@ -225,6 +230,7 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
         { key: "profile" as const, label: "プロフィール", icon: Camera },
         { key: "phone" as const, label: "電話認証", icon: Phone },
         { key: "address" as const, label: "住所管理", icon: MapPin },
+        { key: "account" as const, label: "アカウント", icon: UserMinus },
     ];
 
     return (
@@ -476,6 +482,68 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
 
                             <button onClick={saveAddress} disabled={saving} className="btn btn-primary w-full py-3 disabled:opacity-50">
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "住所を保存する"}
+                            </button>
+                        </div>
+                    )}
+                    {/* ===== Account Tab ===== */}
+                    {activeTab === "account" && (
+                        <div className="space-y-4 animate-fade-in">
+                            <div className="bg-danger/10 p-4 rounded-xl space-y-3">
+                                <div className="flex items-center gap-2 text-danger">
+                                    <AlertTriangle className="h-5 w-5" />
+                                    <h3 className="font-bold">アカウントの退会（削除）</h3>
+                                </div>
+                                <p className="text-sm text-foreground">
+                                    退会すると、以下のデータが完全に削除され、復元することはできません。
+                                </p>
+                                <ul className="list-disc list-inside text-xs text-muted space-y-1">
+                                    <li>登録されているプロフィール情報</li>
+                                    <li>送受信したメッセージや取引履歴（※進行中の取引がある場合は退会できません）</li>
+                                    <li>登録した住所や電話番号</li>
+                                </ul>
+                            </div>
+
+                            <div className="space-y-2 mt-6">
+                                <label className="text-xs font-bold text-muted block">
+                                    退会を希望される場合は、「退会する」と入力してください。
+                                </label>
+                                <input
+                                    type="text"
+                                    value={deleteConfirm}
+                                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                                    placeholder="退会する"
+                                    className="w-full bg-background border border-border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-danger/20"
+                                />
+                            </div>
+
+                            {deleteError && (
+                                <p className="text-xs text-danger font-bold mt-2">{deleteError}</p>
+                            )}
+
+                            <button
+                                onClick={async () => {
+                                    if (deleteConfirm !== "退会する" || !user) return;
+                                    setDeleting(true);
+                                    setDeleteError("");
+
+                                    try {
+                                        const res = await fetch("/api/user/delete", { method: "POST" });
+                                        if (!res.ok) {
+                                            const data = await res.json();
+                                            throw new Error(data.error || "退会処理に失敗しました");
+                                        }
+                                        alert("退会処理が完了しました。ご利用ありがとうございました。");
+                                        await supabase.auth.signOut();
+                                        window.location.href = "/";
+                                    } catch (err: any) {
+                                        setDeleteError(err.message);
+                                        setDeleting(false);
+                                    }
+                                }}
+                                disabled={deleting || deleteConfirm !== "退会する"}
+                                className="btn mt-4 w-full py-3 bg-danger text-white hover:bg-danger/90 disabled:opacity-50"
+                            >
+                                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "完全に退会する"}
                             </button>
                         </div>
                     )}

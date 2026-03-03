@@ -129,6 +129,19 @@ function ProposeContent() {
                 });
             }
 
+            // 新規提案のメール通知を相手に送る
+            if (trade) {
+                fetch("/api/internal-notify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        targetUserId: targetFull.owner_id,
+                        eventType: "NEW_PROPOSAL",
+                        tradeId: trade.id
+                    })
+                }).catch(err => console.error("Notification failed:", err));
+            }
+
             router.push(`/trade/${trade!.id}`);
         } catch {
             setError("エラーが発生しました");
