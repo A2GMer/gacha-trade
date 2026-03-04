@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
                 userId,
                 type: "gacha_trade_deposit",
             },
-            description: `ガチャトレード取引デポジット（取引ID: ${tradeId}）`,
+            description: `スワコレ取引デポジット（取引ID: ${tradeId}）`,
         });
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);

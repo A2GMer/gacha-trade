@@ -36,7 +36,7 @@ export function Header() {
       <div className="container mx-auto px-4 h-12 flex items-center justify-between gap-3">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-[1.02]">
-          <img src="/logo.webp" alt="ガチャトレード" className="h-8 sm:h-9 w-auto object-contain" />
+          <img src="/logo.webp" alt="スワコレ" className="h-8 sm:h-9 w-auto object-contain" />
         </Link>
 
         {/* Search Bar */}

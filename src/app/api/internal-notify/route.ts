@@ -36,25 +36,25 @@ export async function POST(req: NextRequest) {
 
         switch (eventType) {
             case "NEW_PROPOSAL":
-                subject = "【ガチャトレード】新しいトレードの提案が届きました！";
+                subject = "【スワコレ】新しいトレードの提案が届きました！";
                 title = "新しい提案のお知らせ";
                 contentHtml = `<p>あなたの出品アイテムに対して、新しい交換の提案が届いています。</p>
                                <p>内容を確認し、承諾するかお断りするかを選択してください。</p>`;
                 break;
             case "PROPOSAL_ACCEPTED":
-                subject = "【ガチャトレード】提案が承諾されました！";
+                subject = "【スワコレ】提案が承諾されました！";
                 title = "取引成立（デポジット待機）";
                 contentHtml = `<p>あなたの提案が相手に承諾されました。</p>
                                <p>取引を安全に開始するため、取引画面からデポジット（預かり金）の手続きに進んでください。</p>`;
                 break;
             case "DISPUTE_OPENED":
-                subject = "【ガチャトレード】取引について問題が報告されました";
+                subject = "【スワコレ】取引について問題が報告されました";
                 title = "トラブル報告のお知らせ";
                 contentHtml = `<p>現在進行中の取引について、相手から問題の報告がありました。</p>
                                <p>取引画面のメッセージ機能を使って、相手と状況を確認し合ってください。</p>`;
                 break;
             case "NEW_MESSAGE":
-                subject = "【ガチャトレード】取引メッセージが届きました";
+                subject = "【スワコレ】取引メッセージが届きました";
                 title = "新着メッセージ";
                 contentHtml = `<p>取引相手から新しいメッセージが届いています。</p>`;
                 break;

@@ -8,7 +8,7 @@ export function Footer() {
                     <div>
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xs">ガ</div>
-                            <span className="font-bold text-base tracking-tight">ガチャトレード</span>
+                            <span className="font-bold text-base tracking-tight">スワコレ</span>
                         </div>
                         <p className="text-xs text-muted leading-relaxed max-w-xs">
                             ダブったカプセルトイを、欲しい誰かと交換しよう。<br />
@@ -36,7 +36,7 @@ export function Footer() {
 
                 <div className="mt-12 pt-8 border-t border-border/50 text-center">
                     <p className="text-[10px] text-muted font-medium">
-                        &copy; {new Date().getFullYear()} ガチャトレード. All rights reserved.
+                        &copy; {new Date().getFullYear()} スワコレ. All rights reserved.
                     </p>
                 </div>
             </div>

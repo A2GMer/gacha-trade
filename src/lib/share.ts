@@ -3,7 +3,7 @@
  * ハッシュタグ・テキストテンプレートの管理
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://gachatore.vercel.app";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://swacole.vercel.app";
 
 interface ShareItemParams {
     itemName: string;
@@ -44,21 +44,21 @@ export function generateItemShareText(params: ShareItemParams): string {
  * コレクション共有用のツイートテキスト
  */
 export function generateCollectionShareText(userName: string, itemCount: number): string {
-    return `🎰 ${userName}のガチャトレードコレクション（${itemCount}個）を公開中！\n交換できるアイテムがあるかチェックしてみて👀\n\n`;
+    return `🎰 ${userName}のスワコレコレクション（${itemCount}個）を公開中！\n交換できるアイテムがあるかチェックしてみて👀\n\n`;
 }
 
 /**
  * 取引完了共有テキスト
  */
 export function generateTradeCompleteText(myItem: string, partnerItem: string): string {
-    return `✅ ガチャトレードで交換成立！\n「${myItem}」↔️「${partnerItem}」\nダブったガチャ、ここなら交換できるよ🎯\n\n`;
+    return `✅ スワコレで交換成立！\n「${myItem}」↔️「${partnerItem}」\nダブったアイテム、ここなら交換できるよ🎯\n\n`;
 }
 
 /**
  * 標準ハッシュタグ
  */
 export function getHashtags(): string[] {
-    return ["ガチャトレード", "ガチャガチャ交換", "カプセルトイ", "ガチャ交換"];
+    return ["スワコレ", "アイテム交換", "推し活", "ダブり交換"];
 }
 
 /**

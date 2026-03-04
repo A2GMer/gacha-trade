@@ -71,26 +71,26 @@ export default function Home() {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://gacha-trade.com/#website",
-        url: "https://gacha-trade.com",
-        name: "ガチャトレード",
+        "@id": "https://swacole.com/#website",
+        url: "https://swacole.com",
+        name: "スワコレ",
         description: "カプセルトイ（ガチャガチャ）の物々交換プラットフォーム",
         inLanguage: "ja",
         potentialAction: {
           "@type": "SearchAction",
           target: {
             "@type": "EntryPoint",
-            urlTemplate: "https://gacha-trade.com/search?q={search_term_string}",
+            urlTemplate: "https://swacole.com/search?q={search_term_string}",
           },
           "query-input": "required name=search_term_string",
         },
       },
       {
         "@type": "Organization",
-        "@id": "https://gacha-trade.com/#organization",
-        name: "ガチャトレード",
-        url: "https://gacha-trade.com",
-        logo: { "@type": "ImageObject", url: "https://gacha-trade.com/logo.webp" },
+        "@id": "https://swacole.com/#organization",
+        name: "スワコレ",
+        url: "https://swacole.com",
+        logo: { "@type": "ImageObject", url: "https://swacole.com/logo.webp" },
       },
     ],
   };

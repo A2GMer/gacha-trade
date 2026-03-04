@@ -77,7 +77,7 @@ export default function LoginPage() {
                 <div className="w-full max-w-md space-y-6 animate-fade-in-up">
                     {/* Logo & Tagline */}
                     <div className="text-center space-y-2">
-                        <img src="/logo.webp" alt="ガチャトレード" className="h-12 mx-auto object-contain" />
+                        <img src="/logo.webp" alt="スワコレ" className="h-12 mx-auto object-contain" />
                         <p className="text-sm text-muted">カプセルトイの物々交換サービス</p>
                     </div>
 

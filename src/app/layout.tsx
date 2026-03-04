@@ -12,10 +12,10 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "700", "900"],
 });
 
-const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME || "ガチャトレード";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gacha-trade.com";
+const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME || "スワコレ";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://swacole.com";
 const SITE_DESCRIPTION =
-  "ダブったカプセルトイ（ガチャガチャ）を安全に物々交換できるサービス。Xでシェアして交換相手を見つけよう！送料のみで欲しかったアイテムが手に入ります。";
+  "ガチャガチャ・一番くじ・推し活グッズをかんたん物々交換！ダブったアイテムを安全にスワップできるサービスです。送料のみで欲しかったアイテムが手に入ります。";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -26,14 +26,14 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} | カプセルトイの物々交換サービス`,
+    default: `${SITE_NAME} | コレクターアイテムの物々交換サービス`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   keywords: [
     "ガチャガチャ", "カプセルトイ", "物々交換", "トレード",
-    "ガチャ交換", "フィギュア交換", "ダブり交換",
-    "ガチャトレード", "ガチャポン", "コレクション",
+    "一番くじ", "推し活", "ダブり交換",
+    "スワコレ", "コレクション", "アイテム交換",
   ],
   applicationName: SITE_NAME,
   authors: [{ name: SITE_NAME }],
@@ -54,20 +54,20 @@ export const metadata: Metadata = {
     locale: "ja_JP",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} | カプセルトイの物々交換サービス`,
+    title: `${SITE_NAME} | コレクターアイテムの物々交換サービス`,
     description: SITE_DESCRIPTION,
     images: [
       {
         url: "/hero-illustration.webp",
         width: 768,
         height: 512,
-        alt: "ガチャトレード - カプセルトイの物々交換プラットフォーム",
+        alt: "スワコレ - コレクターアイテムの物々交換プラットフォーム",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} | カプセルトイの物々交換サービス`,
+    title: `${SITE_NAME} | コレクターアイテムの物々交換サービス`,
     description: SITE_DESCRIPTION,
     images: ["/hero-illustration.webp"],
   },

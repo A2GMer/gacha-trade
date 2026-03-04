@@ -28,7 +28,7 @@ export async function sendNotificationEmail(params: SendMailParams) {
     <body style="font-family: sans-serif; background-color: #f9f9f9; padding: 20px; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <div style="background-color: #2F327D; padding: 20px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 20px;">ガチャトレード</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px;">スワコレ</h1>
             </div>
             <div style="padding: 30px;">
                 <h2 style="font-size: 18px; color: #2F327D; margin-top: 0;">${params.title}</h2>
@@ -45,7 +45,7 @@ export async function sendNotificationEmail(params: SendMailParams) {
             </div>
             <div style="background-color: #f1f1f1; padding: 15px; text-align: center; font-size: 11px; color: #888;">
                 <p style="margin: 0;">※このメールは送信専用です。返信はできません。</p>
-                <p style="margin: 5px 0 0;">ガチャトレード事務局</p>
+                <p style="margin: 5px 0 0;">スワコレ事務局</p>
             </div>
         </div>
     </body>
