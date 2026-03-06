@@ -407,10 +407,10 @@ body {
 /* ===== Action Bar (sticky bottom) ===== */
 .action-bar {
   position: fixed;
-  bottom: 4rem;
+  bottom: 0;
   left: 0;
   right: 0;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   background: rgba(255, 255, 255, 0.95);
   border-top: 1px solid var(--border);
@@ -418,7 +418,7 @@ body {
 
 @media (min-width: 640px) {
   .action-bar {
-    bottom: 0;
+    padding: 1rem;
   }
 }
 

@@ -34,6 +34,11 @@ export function BottomNav() {
         fetchUnread();
     }, [user, supabase, pathname]);
 
+    // アイテム詳細画面、提案画面などではBottomNavを非表示にして画面を広く使う
+    if (pathname.startsWith("/item/") || pathname.startsWith("/trade/")) {
+        return null;
+    }
+
     return (
         <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border px-2 pt-1 pb-[env(safe-area-inset-bottom,8px)] z-50">
             <div className="flex justify-around items-end">

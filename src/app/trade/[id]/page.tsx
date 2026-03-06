@@ -592,7 +592,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     return (
         <div className="bg-background min-h-screen flex flex-col">
             {/* Header */}
-            <div className="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+            <div className="bg-white/80 backdrop-blur-md border-b border-border sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
                 <Link href="/trade/proposals" className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <ChevronLeft className="h-6 w-6" />
                 </Link>

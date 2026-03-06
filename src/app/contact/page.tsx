@@ -80,7 +80,7 @@ export default function ContactPage() {
 
     return (
         <div className="bg-background min-h-screen pb-28 sm:pb-8">
-            <div className="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+            <div className="bg-white/80 backdrop-blur-md border-b border-border sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
                 <button onClick={() => router.back()} className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <ChevronLeft className="h-6 w-6" />
                 </button>

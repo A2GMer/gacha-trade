@@ -115,10 +115,10 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
             />
 
             {/* Mobile Top Header */}
-            <div className="sm:hidden sticky top-0 glass z-40 px-4 py-3 flex items-center justify-between">
-                <Link href="/" className="p-1 hover:bg-primary-light rounded-lg transition-colors">
+            <div className="sm:hidden sticky top-0 bg-white/80 backdrop-blur-md z-40 px-4 py-3 flex items-center justify-between border-b border-border">
+                <button onClick={() => router.back()} className="p-1 hover:bg-primary-light rounded-lg transition-colors">
                     <ChevronLeft className="h-6 w-6" />
-                </Link>
+                </button>
                 {!isOwner && (
                     <button onClick={() => setShowReport(true)} className="p-2 hover:bg-primary-light rounded-lg transition-colors">
                         <Flag className="h-5 w-5 text-muted" />
@@ -129,16 +129,16 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
             <div className="container mx-auto max-w-4xl sm:py-8 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 {/* Left: Images */}
                 <div className="space-y-3 animate-fade-in">
-                    <div className="aspect-square bg-surface rounded-[20px] overflow-hidden border border-border sm:shadow-md">
+                    <div className="aspect-square bg-surface sm:rounded-[20px] overflow-hidden sm:border border-border sm:shadow-md -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full relative">
                         <img
                             src={item.images[selectedImage] || "/placeholder.png"}
                             alt={`${item.catalog_items?.name || "カプセルトイ"} - ${item.condition}`}
                             width={600}
                             height={600}
-                            className="w-full h-full object-cover transition-opacity duration-300"
+                            className="w-full h-full object-cover transition-opacity duration-300 absolute inset-0"
                         />
                     </div>
-                    <div className="grid grid-cols-4 gap-2 px-4 sm:px-0">
+                    <div className="grid grid-cols-4 gap-2 px-4 sm:px-0 pt-2 sm:pt-0">
                         {item.images.map((img, i) => (
                             <button
                                 key={i}

@@ -5,7 +5,7 @@ import { Header } from "@/components/layout/Header";
 export default function TokushohoPage() {
     return (
         <div className="bg-background min-h-screen">
-            <div className="glass sticky top-0 z-40 px-4 py-3 flex items-center border-b border-border shadow-sm">
+            <div className="bg-white/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center border-b border-border shadow-small">
                 <Link href="/" className="p-1 hover:bg-primary-light rounded-lg transition-colors absolute">
                     <ChevronLeft className="h-6 w-6" />
                 </Link>
