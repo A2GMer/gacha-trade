@@ -107,11 +107,14 @@ export default function Home() {
         <div className="container mx-auto max-w-5xl">
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 leading-tight">
-                ダブったガチャ、交換しよう！
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground leading-[1.15] tracking-tight">
+                ダブったアイテム、<br />
+                <span className="text-primary inline-block mt-2">スワップしよう！</span>
               </h1>
-              <p className="text-white/80 text-sm mb-4 leading-relaxed">
-                カプセルトイの物々交換サービス。送料のみで欲しかったアイテムが手に入る。
+              <p className="text-base sm:text-lg text-muted max-w-lg leading-relaxed">
+                ガチャガチャ、一番くじ、推し活グッズなど、<br className="hidden sm:block" />
+                手放したいアイテムと欲しいアイテムを、<br className="hidden sm:block" />
+                金銭のやり取りなしで安全に交換（スワップ）できるサービスです。
               </p>
               <div className="flex flex-wrap justify-center sm:justify-start gap-2">
                 <Link
@@ -233,8 +236,8 @@ export default function Home() {
               {[
                 {
                   num: "1",
-                  title: "無料登録する",
-                  desc: "メールアドレスとパスワードだけで登録完了。30秒で始められます。",
+                  title: "写真を撮って登録",
+                  desc: "交換に出したいアイテムの写真を撮って、タグをつけて登録するだけ。",
                   detail: null,
                 },
                 {

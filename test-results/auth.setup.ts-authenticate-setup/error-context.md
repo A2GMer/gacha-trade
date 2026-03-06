@@ -1,0 +1,86 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "スワコレ" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "スワコレ" [ref=e5]
+      - generic [ref=e6]:
+        - img [ref=e7]
+        - textbox "キーワードで検索..." [ref=e10]
+      - generic [ref=e12]:
+        - link "ログイン" [ref=e13] [cursor=pointer]:
+          - /url: /login
+        - link "無料登録" [ref=e14] [cursor=pointer]:
+          - /url: /login?tab=register
+  - main [ref=e15]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - img "スワコレ" [ref=e20]
+        - paragraph [ref=e21]: カプセルトイの物々交換サービス
+      - generic [ref=e22]:
+        - button "ログイン" [ref=e23]
+        - button "新規登録" [ref=e24]
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - text: メールアドレス
+          - generic [ref=e27]:
+            - img [ref=e28]
+            - textbox "example@email.com" [ref=e31]: test@example.com
+        - generic [ref=e32]:
+          - text: パスワード
+          - generic [ref=e33]:
+            - img [ref=e34]
+            - textbox "8文字以上" [ref=e37]: testpassword123
+            - button [ref=e38]:
+              - img [ref=e39]
+        - paragraph [ref=e43]: Invalid login credentials
+        - button "ログイン" [ref=e44] [cursor=pointer]:
+          - text: ログイン
+          - img [ref=e45]
+      - generic [ref=e48]:
+        - img [ref=e49]
+        - generic [ref=e52]:
+          - paragraph [ref=e53]: 安心・安全な交換のために
+          - paragraph [ref=e54]: 本人確認（電話番号認証）を行うと、取引相手からの信頼度が向上し、交換成立率がアップします
+    - generic [ref=e56]:
+      - generic [ref=e57]:
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - generic [ref=e60]: ス
+            - generic [ref=e61]: スワコレ
+          - paragraph [ref=e62]:
+            - text: ダブったカプセルトイを、欲しい誰かと交換しよう。
+            - text: 日本最大級のガチャガチャ物々交換プラットフォーム。
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - heading "ガイド" [level=3] [ref=e65]
+            - list [ref=e66]:
+              - listitem [ref=e67]:
+                - link "ヘルプ" [ref=e68] [cursor=pointer]:
+                  - /url: /help
+              - listitem [ref=e69]:
+                - link "安全な取引ガイド" [ref=e70] [cursor=pointer]:
+                  - /url: /guide
+              - listitem [ref=e71]:
+                - link "運営者情報" [ref=e72] [cursor=pointer]:
+                  - /url: /about
+          - generic [ref=e73]:
+            - heading "規約・ポリシー" [level=3] [ref=e74]
+            - list [ref=e75]:
+              - listitem [ref=e76]:
+                - link "利用規約" [ref=e77] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e78]:
+                - link "プライバシーポリシー" [ref=e79] [cursor=pointer]:
+                  - /url: /privacy
+              - listitem [ref=e80]:
+                - link "特定商取引法に基づく表記" [ref=e81] [cursor=pointer]:
+                  - /url: /tokushoho
+      - paragraph [ref=e83]: © 2026 スワコレ. All rights reserved.
+  - button "Open Next.js Dev Tools" [ref=e89] [cursor=pointer]:
+    - img [ref=e90]
+  - alert [ref=e93]
+```

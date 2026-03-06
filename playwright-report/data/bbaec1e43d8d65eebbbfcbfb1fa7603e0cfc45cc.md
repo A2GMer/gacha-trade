@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "遺品整理ガイド.jp （四国版）" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e6]: 遺品整理ガイド.jp
+          - generic [ref=e7]: （四国版）
+        - navigation [ref=e8]:
+          - link "遺品整理ガイド" [ref=e9] [cursor=pointer]:
+            - /url: https://ihin-guide.jp/guide
+          - link "費用相場" [ref=e10] [cursor=pointer]:
+            - /url: https://ihin-guide.jp/guide/cost-breakdown
+          - link "業者選びのコツ" [ref=e11] [cursor=pointer]:
+            - /url: https://ihin-guide.jp/guide/choosing-company
+    - main [ref=e12]:
+      - generic [ref=e14]:
+        - heading "404" [level=1] [ref=e15]
+        - heading "This page could not be found." [level=2] [ref=e17]
+    - contentinfo [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - link "遺品整理ガイド.jp （四国版）" [ref=e22] [cursor=pointer]:
+              - /url: /
+              - text: 遺品整理ガイド.jp
+              - generic [ref=e23]: （四国版）
+            - generic [ref=e24]: "|"
+            - paragraph [ref=e25]: 遺品整理でお困りの方へ
+          - navigation [ref=e26]:
+            - link "遺品整理ガイド一覧" [ref=e27] [cursor=pointer]:
+              - /url: https://ihin-guide.jp/guide
+            - link "初めての遺品整理" [ref=e28] [cursor=pointer]:
+              - /url: https://ihin-guide.jp/guide/first-time
+            - link "費用相場" [ref=e29] [cursor=pointer]:
+              - /url: https://ihin-guide.jp/guide/cost-breakdown
+            - link "業者選びのコツ" [ref=e30] [cursor=pointer]:
+              - /url: https://ihin-guide.jp/guide/choosing-company
+            - link "実家の片付け" [ref=e31] [cursor=pointer]:
+              - /url: https://ihin-guide.jp/guide/starting-cleanup
+            - link "親族トラブル" [ref=e32] [cursor=pointer]:
+              - /url: https://ihin-guide.jp/guide/family-troubles
+        - generic [ref=e33]:
+          - generic [ref=e34]: "対応エリア:"
+          - link "地域一覧を見る" [ref=e35] [cursor=pointer]:
+            - /url: /#regions
+        - generic [ref=e36]:
+          - link "運営者情報" [ref=e37] [cursor=pointer]:
+            - /url: /about
+          - link "プライバシーポリシー" [ref=e38] [cursor=pointer]:
+            - /url: /privacy-policy
+          - link "免責事項" [ref=e39] [cursor=pointer]:
+            - /url: /disclaimer
+        - paragraph [ref=e41]: © 2026 遺品整理ガイド（四国版） All rights reserved.
+  - button "Open Next.js Dev Tools" [ref=e47] [cursor=pointer]:
+    - img [ref=e48]
+  - alert [ref=e51]
+```

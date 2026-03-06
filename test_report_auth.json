@@ -1,0 +1,441 @@
+{
+  "config": {
+    "configFile": "D:\\workspace\\900_toys\\005_ガチャトレ\\gacha-tore\\playwright.config.ts",
+    "rootDir": "D:/workspace/900_toys/005_ガチャトレ/gacha-tore/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 8
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/workspace/900_toys/005_ガチャトレ/gacha-tore/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "setup",
+        "name": "setup",
+        "testDir": "D:/workspace/900_toys/005_ガチャトレ/gacha-tore/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/auth\\.setup\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "D:/workspace/900_toys/005_ガチャトレ/gacha-tore/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "D:/workspace/900_toys/005_ガチャトレ/gacha-tore/e2e",
+        "testIgnore": [
+          "/auth\\.setup\\.ts|authenticated\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "D:/workspace/900_toys/005_ガチャトレ/gacha-tore/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "authenticated",
+        "name": "authenticated",
+        "testDir": "D:/workspace/900_toys/005_ガチャトレ/gacha-tore/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/authenticated\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 8,
+    "webServer": {
+      "command": "npm run dev -- -p 3001",
+      "url": "http://localhost:3001",
+      "reuseExistingServer": true,
+      "timeout": 60000
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.setup.ts",
+      "file": "auth.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 15800,
+                  "error": {
+                    "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/dashboard\" until \"load\"\n============================================================",
+                    "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/dashboard\" until \"load\"\n============================================================\n    at D:\\workspace\\900_toys\\005_ガチャトレ\\gacha-tore\\e2e\\auth.setup.ts:17:16",
+                    "location": {
+                      "file": "D:\\workspace\\900_toys\\005_ガチャトレ\\gacha-tore\\e2e\\auth.setup.ts",
+                      "column": 16,
+                      "line": 17
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 15 |\u001b[39m\n \u001b[90m 16 |\u001b[39m     \u001b[90m// ダッシュボードへの遷移を待つ\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'**/dashboard'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 18 |\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[90m// セッション情報を保存\u001b[39m\n \u001b[90m 20 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mstorageState({ path\u001b[33m:\u001b[39m \u001b[33mAUTH_FILE\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "D:\\workspace\\900_toys\\005_ガチャトレ\\gacha-tore\\e2e\\auth.setup.ts",
+                        "column": 16,
+                        "line": 17
+                      },
+                      "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/dashboard\" until \"load\"\n============================================================\n\n  15 |\n  16 |     // ダッシュボードへの遷移を待つ\n> 17 |     await page.waitForURL('**/dashboard', { timeout: 15000 });\n     |                ^\n  18 |\n  19 |     // セッション情報を保存\n  20 |     await page.context().storageState({ path: AUTH_FILE });\n    at D:\\workspace\\900_toys\\005_ガチャトレ\\gacha-tore\\e2e\\auth.setup.ts:17:16"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-03-06T11:33:41.927Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "D:\\workspace\\900_toys\\005_ガチャトレ\\gacha-tore\\test-results\\auth.setup.ts-authenticate-setup\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "D:\\workspace\\900_toys\\005_ガチャトレ\\gacha-tore\\e2e\\auth.setup.ts",
+                    "column": 16,
+                    "line": 17
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-60f085b113a677673906",
+          "file": "auth.setup.ts",
+          "line": 5,
+          "column": 6
+        }
+      ]
+    },
+    {
+      "title": "authenticated.spec.ts",
+      "file": "authenticated.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authenticated: MyPage",
+          "file": "authenticated.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "2-1-1 MyPage displays profile",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-a0f2bed427ca9e97ddfe",
+              "file": "authenticated.spec.ts",
+              "line": 5,
+              "column": 9
+            },
+            {
+              "title": "2-1-2 MyPage menu links work",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-031f64b0ad51c758d5de",
+              "file": "authenticated.spec.ts",
+              "line": 26,
+              "column": 9
+            },
+            {
+              "title": "2-1-3 MyPage settings button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-7b59c9a98b46a15f7859",
+              "file": "authenticated.spec.ts",
+              "line": 39,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Authenticated: Sell Page",
+          "file": "authenticated.spec.ts",
+          "line": 53,
+          "column": 6,
+          "specs": [
+            {
+              "title": "3-1-1 Sell page form structure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-ab162223bffbf9f42182",
+              "file": "authenticated.spec.ts",
+              "line": 54,
+              "column": 9
+            },
+            {
+              "title": "3-1-9 Tradeable toggle forces public",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-d5da6b18f7678deb1933",
+              "file": "authenticated.spec.ts",
+              "line": 84,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Authenticated: Collection Page",
+          "file": "authenticated.spec.ts",
+          "line": 99,
+          "column": 6,
+          "specs": [
+            {
+              "title": "3-2-1 Collection page structure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-7d2954082db76b597527",
+              "file": "authenticated.spec.ts",
+              "line": 100,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Authenticated: Wants Page",
+          "file": "authenticated.spec.ts",
+          "line": 122,
+          "column": 6,
+          "specs": [
+            {
+              "title": "5-1 Wants page structure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-a955970125c539d9f49f",
+              "file": "authenticated.spec.ts",
+              "line": 123,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Authenticated: Dashboard",
+          "file": "authenticated.spec.ts",
+          "line": 136,
+          "column": 6,
+          "specs": [
+            {
+              "title": "6-4-1 Dashboard page structure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-695ad1caf3a67cb5e9f4",
+              "file": "authenticated.spec.ts",
+              "line": 137,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Authenticated: Notifications",
+          "file": "authenticated.spec.ts",
+          "line": 145,
+          "column": 6,
+          "specs": [
+            {
+              "title": "8-1 Notifications page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-c309071637eb0c846f2d",
+              "file": "authenticated.spec.ts",
+              "line": 146,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Authenticated: Trade Proposals",
+          "file": "authenticated.spec.ts",
+          "line": 153,
+          "column": 6,
+          "specs": [
+            {
+              "title": "6-2-1 Trade proposals page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "authenticated",
+                  "projectName": "authenticated",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "54f44905dc7ce2cd4d41-6f718488db086d18b089",
+              "file": "authenticated.spec.ts",
+              "line": 154,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-03-06T11:33:36.726Z",
+    "duration": 21858.038,
+    "expected": 0,
+    "skipped": 10,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
