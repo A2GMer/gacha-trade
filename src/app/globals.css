@@ -205,12 +205,28 @@ body {
   animation: fadeIn 0.2s ease-out both;
 }
 
-/* Disable decorative animations — noop to avoid broken class refs */
+/* ===== Decorative Animations ===== */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+.animate-float {
+  animation: float 4.5s ease-in-out infinite;
+}
+
+/* Disable unused old animations to avoid broken class refs */
 .animate-pulse-glow,
 .animate-bounce-in,
-.animate-slide-in-right,
-.animate-float {
-  /* intentionally empty — removes decorative animations */
+.animate-slide-in-right {
+  /* intentionally empty */
 }
 
 /* Staggered delays — kept minimal for list rendering */

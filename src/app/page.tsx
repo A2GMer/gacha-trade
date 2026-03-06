@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ItemCard } from "@/components/items/ItemCard";
+import { HeroCarousel } from "@/components/home/HeroCarousel";
 
 interface ItemWithProfile {
   id: string;
@@ -102,39 +103,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* ===== Hero Banner (compact) ===== */}
-      <div className="bg-primary text-white px-4 py-6 sm:py-8">
-        <div className="container mx-auto max-w-5xl">
-          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-            <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground leading-[1.15] tracking-tight">
-                ダブったアイテム、<br />
-                <span className="text-primary inline-block mt-2">スワップしよう！</span>
-              </h1>
-              <p className="text-base sm:text-lg text-muted max-w-lg leading-relaxed">
-                ガチャガチャ、一番くじ、推し活グッズなど、<br className="hidden sm:block" />
-                手放したいアイテムと欲しいアイテムを、<br className="hidden sm:block" />
-                金銭のやり取りなしで安全に交換（スワップ）できるサービスです。
-              </p>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2">
-                <Link
-                  href="/search"
-                  className="btn bg-white text-primary hover:bg-white/90 px-6 py-2.5 text-sm font-semibold gap-1.5"
-                >
-                  <Search className="h-4 w-4" />
-                  探す
-                </Link>
-                <Link
-                  href="/sell"
-                  className="btn bg-white/15 text-white hover:bg-white/25 px-6 py-2.5 text-sm font-semibold border border-white/20 gap-1.5"
-                >
-                  出品する
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <HeroCarousel />
 
       {/* ===== Logged-in Dashboard Link ===== */}
       {user && (
