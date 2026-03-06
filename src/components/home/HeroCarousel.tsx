@@ -6,6 +6,14 @@ import Autoplay from "embla-carousel-autoplay";
 import Link from "next/link";
 import { Search } from "lucide-react";
 
+function XLogo({ className = "h-4 w-4" }: { className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+    );
+}
+
 export function HeroCarousel() {
     const [emblaRef, emblaApi] = useEmblaCarousel(
         { loop: true, align: "center", containScroll: "trimSnaps" },
@@ -137,6 +145,34 @@ export function HeroCarousel() {
                             </Link>
                         </div>
                         {selectedIndex === 2 && (
+                            <div className="absolute bottom-0 left-0 right-0 h-1 sm:h-1.5 bg-black/20 z-20">
+                                <div className="h-full bg-white origin-left animate-[progress_5s_linear_forwards]" />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Slide 4: X Import CTA */}
+                    <div className="flex-[0_0_90%] sm:flex-[0_0_85%] md:flex-[0_0_80%] min-w-0 relative bg-gradient-to-r from-gray-900 to-gray-700 aspect-[4/3] sm:aspect-[21/9] md:aspect-[3/1] flex items-center justify-between p-6 sm:p-10 overflow-hidden mx-1 sm:mx-2 rounded-xl sm:rounded-2xl shadow-sm">
+                        <div className="relative z-10 w-full flex flex-col items-center sm:items-start text-center sm:text-left">
+                            <span className="bg-white/10 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full mb-3 border border-white/20 shadow-sm flex items-center gap-1.5 w-fit">
+                                <XLogo className="h-3 w-3" />
+                                新機能
+                            </span>
+                            <h2 className="text-2xl sm:text-4xl font-black text-white leading-tight mb-3 drop-shadow-md">
+                                XのポストURLから<br />かんたん出品
+                            </h2>
+                            <p className="text-sm sm:text-base text-white/90 mb-5 drop-shadow-sm font-medium">
+                                Xでの募集内容をそのまま取り込めます
+                            </p>
+                            <Link
+                                href="/sell"
+                                className="btn bg-white text-gray-900 hover:bg-gray-50 hover:scale-105 transition-all text-sm px-8 py-3 font-bold shadow-lg rounded-full flex items-center gap-2 w-fit"
+                            >
+                                <XLogo className="h-4 w-4" />
+                                試してみる
+                            </Link>
+                        </div>
+                        {selectedIndex === 3 && (
                             <div className="absolute bottom-0 left-0 right-0 h-1 sm:h-1.5 bg-black/20 z-20">
                                 <div className="h-full bg-white origin-left animate-[progress_5s_linear_forwards]" />
                             </div>
