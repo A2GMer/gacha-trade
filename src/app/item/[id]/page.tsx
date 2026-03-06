@@ -8,6 +8,7 @@ import { useState, useEffect, use } from "react";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useRouter } from "next/navigation";
+import { XReferralBanner } from "@/components/marketing/XReferralBanner";
 
 function XLogo({ className = "h-4 w-4" }: { className?: string }) {
     return (
@@ -33,6 +34,8 @@ interface ItemData {
         rating_avg: number;
         trade_count: number;
         phone_verified: boolean;
+        x_username: string | null;
+        display_name_source: "manual" | "twitter";
     };
 }
 
@@ -53,7 +56,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                 .select(`
           id, images, condition, quantity, memo, is_tradeable, owner_id,
           catalog_items (name, series, manufacturer),
-          profiles:owner_id (id, display_name, avatar_url, rating_avg, trade_count, phone_verified)
+          profiles:owner_id (id, display_name, avatar_url, rating_avg, trade_count, phone_verified, x_username, display_name_source)
         `)
                 .eq("id", id)
                 .single();
@@ -105,6 +108,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
 
     return (
         <div className="bg-background min-h-screen pb-28 sm:pb-8">
+            <XReferralBanner />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
@@ -197,7 +201,9 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-1 font-bold group-hover:text-primary transition-colors">
-                                        {item.profiles?.display_name || "ユーザー"}
+                                        {item.profiles?.display_name_source === "twitter" && item.profiles?.x_username
+                                            ? `@${item.profiles.x_username}`
+                                            : item.profiles?.display_name || "ユーザー"}
                                         {item.profiles?.phone_verified && <ShieldCheck className="h-4 w-4 text-accent" />}
                                     </div>
                                     <div className="flex items-center gap-3 text-xs text-muted">

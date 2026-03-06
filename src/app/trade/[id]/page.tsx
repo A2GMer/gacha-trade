@@ -8,8 +8,18 @@ import { ReviewModal } from "@/components/trade/ReviewModal";
 import { DeadlineCountdown } from "@/components/trade/DeadlineCountdown";
 import { DepositModal } from "@/components/trade/DepositModal";
 import { lookupPostalCode } from "@/lib/postal";
+import { shareTradeCompleteOnX } from "@/lib/share";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
+import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
+
+function XLogo({ className = "h-4 w-4" }: { className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+    );
+}
 
 const ALL_STEPS = [
     { id: "PROPOSED", label: "提案", icon: "📩" },
@@ -44,8 +54,8 @@ interface TradeData {
     updated_at: string;
     proposer_item: { id: string; images: string[]; catalog_items: { name: string } };
     receiver_item: { id: string; images: string[]; catalog_items: { name: string } };
-    proposer_profile: { display_name: string; rating_avg: number };
-    receiver_profile: { display_name: string; rating_avg: number };
+    proposer_profile: { display_name: string; rating_avg: number; x_username: string | null; display_name_source: "manual" | "twitter" };
+    receiver_profile: { display_name: string; rating_avg: number; x_username: string | null; display_name_source: "manual" | "twitter" };
     proposer_payment_intent_id: string | null;
     receiver_payment_intent_id: string | null;
 }
@@ -121,8 +131,8 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
           proposer_shipped, receiver_shipped, proposer_received, receiver_received,
           proposer_item:proposer_item_id (id, images, catalog_items (name)),
           receiver_item:receiver_item_id (id, images, catalog_items (name)),
-          proposer_profile:proposer_id (display_name, rating_avg),
-          receiver_profile:receiver_id (display_name, rating_avg),
+          proposer_profile:proposer_id (display_name, rating_avg, x_username, display_name_source),
+          receiver_profile:receiver_id (display_name, rating_avg, x_username, display_name_source),
           proposer_tracking_number, receiver_tracking_number,
           proposer_payment_intent_id, receiver_payment_intent_id
         `)
@@ -588,10 +598,10 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                 </Link>
                 <div className="text-center flex items-center gap-2">
                     <div className="w-7 h-7 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xs">
-                        {(partner?.display_name || "?")[0]}
+                        {getProfileDisplayName(partner as DisplayNameProfile, "?")[0]}
                     </div>
                     <div className="text-left">
-                        <h1 className="font-bold text-sm leading-none">{partner?.display_name || "ユーザー"}さん</h1>
+                        <h1 className="font-bold text-sm leading-none">{getProfileDisplayName(partner as DisplayNameProfile, "ユーザー")}</h1>
                         <p className="text-[10px] text-muted">との取引</p>
                     </div>
                 </div>
@@ -977,6 +987,19 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                                 <p className="text-sm font-bold text-muted">評価済みです</p>
                             </div>
                         )}
+
+                        {/* X共有CTA */}
+                        <button
+                            onClick={() => shareTradeCompleteOnX(
+                                myItem?.catalog_items?.name || "アイテム",
+                                partnerItem?.catalog_items?.name || "アイテム",
+                                trade.id
+                            )}
+                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-foreground text-white hover:bg-foreground/90 transition-colors text-sm font-bold"
+                        >
+                            <XLogo className="h-4 w-4" />
+                            交換成立をXでシェアする
+                        </button>
                     </div>
                 )}
 
@@ -1024,7 +1047,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                         <div key={m.id} className={`flex ${m.sender_id === user.id ? "justify-end" : "justify-start"}`}>
                             {m.sender_id !== user.id && (
                                 <div className="w-7 h-7 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-[10px] mr-2 mt-1 shrink-0">
-                                    {(partner?.display_name || "?")[0]}
+                                    {getProfileDisplayName(partner as DisplayNameProfile, "?")[0]}
                                 </div>
                             )}
                             <div className={`max-w-[75%] p-3 text-sm leading-relaxed whitespace-pre-line ${m.sender_id === user.id
@@ -1089,7 +1112,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                 <ReviewModal
                     tradeId={trade.id}
                     targetUserId={isProposer ? trade.receiver_id : trade.proposer_id}
-                    targetUserName={partner.display_name || "相手"}
+                    targetUserName={getProfileDisplayName(partner as DisplayNameProfile, "相手")}
                     onClose={() => setShowReview(false)}
                     onComplete={() => {
                         setShowReview(false);

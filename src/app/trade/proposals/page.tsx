@@ -5,6 +5,7 @@ import { ArrowRightLeft, Check, X, ChevronRight, Inbox } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
+import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
 
 interface TradeProposal {
     id: string;
@@ -24,9 +25,13 @@ interface TradeProposal {
     };
     proposer_profile: {
         display_name: string;
+        x_username: string | null;
+        display_name_source: "manual" | "twitter";
     };
     receiver_profile: {
         display_name: string;
+        x_username: string | null;
+        display_name_source: "manual" | "twitter";
     };
 }
 
@@ -54,8 +59,8 @@ export default function ProposalsPage() {
           receiver_id,
           proposer_item:proposer_item_id (id, images, catalog_items (name)),
           receiver_item:receiver_item_id (id, images, catalog_items (name)),
-          proposer_profile:proposer_id (display_name),
-          receiver_profile:receiver_id (display_name)
+          proposer_profile:proposer_id (display_name, x_username, display_name_source),
+          receiver_profile:receiver_id (display_name, x_username, display_name_source)
         `)
                 .eq(column, user!.id)
                 .order("created_at", { ascending: false });
@@ -164,8 +169,8 @@ export default function ProposalsPage() {
                         const badge = getStatusBadge(proposal.status);
                         const isReceived = activeTab === "received";
                         const partnerName = isReceived
-                            ? proposal.proposer_profile?.display_name || "ユーザー"
-                            : proposal.receiver_profile?.display_name || "ユーザー";
+                            ? getProfileDisplayName(proposal.proposer_profile as DisplayNameProfile, "ユーザー")
+                            : getProfileDisplayName(proposal.receiver_profile as DisplayNameProfile, "ユーザー");
 
                         return (
                             <div

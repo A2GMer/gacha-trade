@@ -21,6 +21,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
+import { getProfileDisplayName } from "@/lib/profile";
 
 interface UserProfile {
     display_name: string;
@@ -29,6 +30,8 @@ interface UserProfile {
     trade_count: number;
     phone_verified: boolean;
     role: string;
+    x_username: string | null;
+    display_name_source: "manual" | "twitter";
 }
 
 interface ItemStats {
@@ -50,7 +53,7 @@ export default function MyPage() {
         const [profRes, itemsRes] = await Promise.all([
             supabase
                 .from("profiles")
-                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified, role")
+                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified, role, x_username, display_name_source")
                 .eq("id", user.id)
                 .single(),
             supabase
@@ -133,7 +136,9 @@ export default function MyPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 text-base font-bold">
-                                <span className="truncate">{profile?.display_name || "未設定"}</span>
+                                <span className="truncate">
+                                    {getProfileDisplayName(profile, "未設定")}
+                                </span>
                                 {profile?.phone_verified && (
                                     <ShieldCheck className="h-4 w-4 text-accent shrink-0" />
                                 )}

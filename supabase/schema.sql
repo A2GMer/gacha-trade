@@ -7,6 +7,8 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   display_name TEXT,
   avatar_url TEXT,
+  x_username TEXT, -- Xのユーザー名（@以降）
+  display_name_source TEXT DEFAULT 'manual', -- 'manual' または 'twitter'
   phone_verified BOOLEAN DEFAULT FALSE,
   rating_avg DECIMAL(3,2) DEFAULT 0,
   trade_count INTEGER DEFAULT 0,

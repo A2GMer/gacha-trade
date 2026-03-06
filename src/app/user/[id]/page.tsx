@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { Star, ShieldCheck, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import { getProfileDisplayName } from "@/lib/profile";
 
 interface UserProfile {
     display_name: string;
@@ -11,6 +12,8 @@ interface UserProfile {
     rating_avg: number;
     trade_count: number;
     phone_verified: boolean;
+    x_username: string | null;
+    display_name_source: "manual" | "twitter";
 }
 
 interface UserItem {
@@ -35,7 +38,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         async function fetchData() {
             const { data: prof } = await supabase
                 .from("profiles")
-                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified")
+                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified, x_username, display_name_source")
                 .eq("id", id)
                 .single();
 
@@ -96,7 +99,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         </div>
                         <div>
                             <div className="flex items-center gap-1.5 text-base font-bold">
-                                {profile.display_name}
+                                {getProfileDisplayName(profile, "未設定")}
                                 {profile.phone_verified && <ShieldCheck className="h-4 w-4 text-accent" />}
                             </div>
                             <div className="flex items-center gap-3 text-sm text-muted">

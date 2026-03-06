@@ -10,6 +10,7 @@ interface AuthContextType {
     loading: boolean;
     signUp: (email: string, password: string, displayName: string) => Promise<{ error: string | null }>;
     signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+    signInWithX: () => Promise<{ error: string | null }>;
     signOut: () => Promise<void>;
 }
 
@@ -70,12 +71,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         [supabase.auth]
     );
 
+    const signInWithX = useCallback(async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'twitter',
+            options: {
+                redirectTo: `${window.location.origin}/dashboard`
+            }
+        });
+        if (error) return { error: error.message };
+        return { error: null };
+    }, [supabase.auth]);
+
     const signOut = useCallback(async () => {
         await supabase.auth.signOut();
     }, [supabase.auth]);
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+        <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithX, signOut }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, HelpCircle, Info, CheckCircle, AlertCircle } from "lucide-react";
+import { ChevronLeft, HelpCircle, Info, CheckCircle, AlertCircle, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
@@ -42,6 +42,41 @@ export default function SellPage() {
     const [submittedItemId, setSubmittedItemId] = useState<string | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
+
+    // X Import States
+    const [tweetUrl, setTweetUrl] = useState("");
+    const [fetchingTweet, setFetchingTweet] = useState(false);
+    const [tweetHtml, setTweetHtml] = useState("");
+    const [tweetError, setTweetError] = useState("");
+
+    const fetchTweet = async () => {
+        if (!tweetUrl) return;
+        setFetchingTweet(true);
+        setTweetError("");
+        setTweetHtml("");
+        try {
+            const res = await fetch(`/api/tweet-preview?url=${encodeURIComponent(tweetUrl)}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "取得に失敗しました");
+            if (data.html) {
+                setTweetHtml(data.html);
+            } else {
+                setTweetError("ツイート情報の取得に失敗しました");
+            }
+        } catch (err: any) {
+            setTweetError(err.message || "ツイート情報の取得に失敗しました");
+        } finally {
+            setFetchingTweet(false);
+        }
+    };
+
+    const copyTweetText = () => {
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = tweetHtml;
+        const text = tempDiv.textContent || tempDiv.innerText || "";
+        // 不要な「— アカウント名 (@username) 日付」などの末尾部分もある程度入るが、ユーザーが消せるのでOKとする
+        setMemo((prev) => prev ? prev + "\n\n" + text.trim() : text.trim());
+    };
 
     const handleTradeableToggle = (val: boolean) => {
         setIsTradeable(val);
@@ -174,6 +209,63 @@ export default function SellPage() {
                         {errors.submit}
                     </div>
                 )}
+
+                {/* X Import (Optional) */}
+                <div className="card p-5 animate-fade-in-up">
+                    <h2 className="font-bold mb-3 flex items-center gap-2">
+                        <XLogo className="h-4 w-4" />
+                        Xの投稿から取り込む（任意）
+                    </h2>
+                    <p className="text-xs text-muted mb-3">
+                        すでにXで交換や譲渡を募集している場合、投稿のURLを入力すると内容を参照しながら出品できます。
+                    </p>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={tweetUrl}
+                            onChange={(e) => setTweetUrl(e.target.value)}
+                            placeholder="https://x.com/..."
+                            className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+                        <button
+                            onClick={fetchTweet}
+                            disabled={!tweetUrl || fetchingTweet}
+                            className="btn btn-outline px-4 shrink-0 disabled:opacity-50"
+                        >
+                            {fetchingTweet ? (
+                                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                            ) : (
+                                "読込"
+                            )}
+                        </button>
+                    </div>
+                    {tweetError && (
+                        <p className="text-danger text-xs mt-2">{tweetError}</p>
+                    )}
+                    {tweetHtml && (
+                        <div className="mt-4 space-y-3 border-t border-border pt-4 animate-fade-in-up">
+                            <div
+                                className="tweet-preview-container max-h-64 overflow-y-auto bg-background rounded-lg p-3 text-sm border border-border"
+                                dangerouslySetInnerHTML={{ __html: tweetHtml }}
+                            />
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={copyTweetText}
+                                    className="btn btn-primary flex-1 py-2 text-xs flex items-center justify-center gap-1.5"
+                                >
+                                    <Download className="h-3 w-3" />
+                                    テキストをメモにコピー
+                                </button>
+                                <button
+                                    onClick={() => { setTweetHtml(""); setTweetUrl(""); }}
+                                    className="btn btn-outline px-3 py-2 text-xs"
+                                >
+                                    クリア
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* Step 1: Photos */}
                 <div className="card p-5 animate-fade-in-up">

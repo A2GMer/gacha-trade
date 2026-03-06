@@ -6,8 +6,16 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { ShieldCheck, Mail, Lock, User, ArrowRight, Eye, EyeOff, ArrowRightLeft } from "lucide-react";
 import Link from "next/link";
 
+function XLogo({ className = "h-4 w-4" }: { className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+    );
+}
+
 export default function LoginPage() {
-    const { signIn, signUp } = useAuth();
+    const { signIn, signUp, signInWithX } = useAuth();
     const router = useRouter();
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState("");
@@ -79,6 +87,25 @@ export default function LoginPage() {
                     <div className="text-center space-y-2">
                         <img src="/logo.svg" alt="スワコレ" className="h-12 mx-auto object-contain" />
                         <p className="text-sm text-muted">カプセルトイの物々交換サービス</p>
+                    </div>
+
+                    {/* X Login */}
+                    <button
+                        onClick={async () => {
+                            setLoading(true);
+                            await signInWithX();
+                        }}
+                        disabled={loading}
+                        className="flex items-center justify-center gap-2 w-full py-3.5 bg-foreground text-white hover:bg-foreground/90 transition-colors text-base font-bold rounded-xl disabled:opacity-50"
+                    >
+                        <XLogo className="h-5 w-5" />
+                        Xアカウントでログイン / 登録
+                    </button>
+
+                    <div className="flex items-center gap-4 py-2">
+                        <div className="flex-1 h-px bg-border"></div>
+                        <span className="text-xs text-muted font-bold">または</span>
+                        <div className="flex-1 h-px bg-border"></div>
                     </div>
 
                     {/* Toggle */}

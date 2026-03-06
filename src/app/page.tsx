@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ItemCard } from "@/components/items/ItemCard";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
 
 interface ItemWithProfile {
   id: string;
@@ -22,6 +23,8 @@ interface ItemWithProfile {
     display_name: string;
     rating_avg: number;
     phone_verified: boolean;
+    x_username: string | null;
+    display_name_source: "manual" | "twitter";
   };
 }
 
@@ -44,7 +47,7 @@ export default function Home() {
           .select(`
             id, images, condition, trade_status,
             catalog_items (name, series, manufacturer),
-            profiles:owner_id (display_name, rating_avg, phone_verified)
+            profiles:owner_id (display_name, rating_avg, phone_verified, x_username, display_name_source)
           `)
           .eq("is_public", true)
           .neq("trade_status", "COMPLETED")
@@ -183,7 +186,7 @@ export default function Home() {
                   tradeStatus={item.trade_status}
                   series={item.catalog_items?.series}
                   manufacturer={item.catalog_items?.manufacturer}
-                  ownerName={item.profiles?.display_name}
+                  ownerName={getProfileDisplayName(item.profiles as DisplayNameProfile, "ユーザー")}
                   ownerRating={item.profiles?.rating_avg}
                   ownerVerified={item.profiles?.phone_verified}
                   size="md"

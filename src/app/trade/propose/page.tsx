@@ -6,13 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
+import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
 
 interface ItemInfo {
     id: string;
     images: string[];
     condition: string;
     catalog_items: { name: string; series: string; manufacturer: string };
-    profiles: { display_name: string };
+    profiles: { display_name: string; x_username: string | null; display_name_source: "manual" | "twitter" };
 }
 
 function ProposeContent() {
@@ -37,7 +38,7 @@ function ProposeContent() {
             // 相手のアイテムを取得
             const { data: target } = await supabase
                 .from("user_items")
-                .select(`id, images, condition, catalog_items (name, series, manufacturer), profiles:owner_id (display_name)`)
+                .select(`id, images, condition, catalog_items (name, series, manufacturer), profiles:owner_id (display_name, x_username, display_name_source)`)
                 .eq("id", targetItemId)
                 .single();
 
@@ -46,7 +47,7 @@ function ProposeContent() {
             // 自分の交換可能アイテムを取得
             const { data: mine } = await supabase
                 .from("user_items")
-                .select(`id, images, condition, catalog_items (name, series, manufacturer), profiles:owner_id (display_name)`)
+                .select(`id, images, condition, catalog_items (name, series, manufacturer), profiles:owner_id (display_name, x_username, display_name_source)`)
                 .eq("owner_id", user!.id)
                 .eq("is_tradeable", true);
 
@@ -225,7 +226,7 @@ function ProposeContent() {
                                 className="w-20 h-20 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm"
                             />
                             <p className="badge bg-secondary-light text-secondary text-[8px] mx-auto">
-                                {targetItem.profiles?.display_name}さん
+                                {getProfileDisplayName(targetItem.profiles as DisplayNameProfile, "ユーザー")}さん
                             </p>
                             <p className="text-[10px] font-bold mt-0.5 truncate">{targetItem.catalog_items?.name}</p>
                         </div>

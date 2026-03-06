@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Search as SearchIcon, SlidersHorizontal, Star, ShieldCheck, Eye } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
 
 interface SearchResult {
     id: string;
@@ -19,6 +20,8 @@ interface SearchResult {
         display_name: string;
         rating_avg: number;
         phone_verified: boolean;
+        x_username: string | null;
+        display_name_source: "manual" | "twitter";
     };
 }
 
@@ -61,7 +64,7 @@ export default function SearchPage() {
         condition,
         trade_status,
         catalog_items!inner (name, series, manufacturer),
-        profiles:owner_id (display_name, rating_avg, phone_verified)
+        profiles:owner_id (display_name, rating_avg, phone_verified, x_username, display_name_source)
       `)
             .eq("is_public", true)
             .neq("trade_status", "COMPLETED")
@@ -193,7 +196,7 @@ export default function SearchPage() {
                                                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                                                     <span className="font-bold text-foreground">{item.profiles?.rating_avg || 0}</span>
                                                     {item.profiles?.phone_verified && <ShieldCheck className="h-3 w-3 text-accent" />}
-                                                    <span className="ml-0.5">{item.profiles?.display_name || "ユーザー"}</span>
+                                                    <span className="ml-0.5">{getProfileDisplayName(item.profiles as DisplayNameProfile, "ユーザー")}</span>
                                                 </div>
                                             </div>
                                         </div>

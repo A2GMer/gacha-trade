@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
+import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
 import {
     ArrowRightLeft,
     ChevronRight,
@@ -24,8 +25,8 @@ interface Trade {
     receiver_id: string;
     proposer_item: { images: string[]; catalog_items: { name: string } };
     receiver_item: { images: string[]; catalog_items: { name: string } };
-    proposer_profile: { display_name: string };
-    receiver_profile: { display_name: string };
+    proposer_profile: { display_name: string; x_username: string | null; display_name_source: "manual" | "twitter" };
+    receiver_profile: { display_name: string; x_username: string | null; display_name_source: "manual" | "twitter" };
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof Clock }> = {
@@ -68,8 +69,8 @@ export default function DashboardPage() {
           id, status, created_at, proposer_id, receiver_id,
           proposer_item:proposer_item_id (images, catalog_items (name)),
           receiver_item:receiver_item_id (images, catalog_items (name)),
-          proposer_profile:proposer_id (display_name),
-          receiver_profile:receiver_id (display_name)
+          proposer_profile:proposer_id (display_name, x_username, display_name_source),
+          receiver_profile:receiver_id (display_name, x_username, display_name_source)
         `)
                 .or(`proposer_id.eq.${user!.id},receiver_id.eq.${user!.id}`)
                 .order("updated_at", { ascending: false });
@@ -121,8 +122,8 @@ export default function DashboardPage() {
         const myItem = isProposer ? trade.proposer_item : trade.receiver_item;
         const theirItem = isProposer ? trade.receiver_item : trade.proposer_item;
         const partnerName = isProposer
-            ? trade.receiver_profile?.display_name
-            : trade.proposer_profile?.display_name;
+            ? getProfileDisplayName(trade.receiver_profile as DisplayNameProfile, "ユーザー")
+            : getProfileDisplayName(trade.proposer_profile as DisplayNameProfile, "ユーザー");
         const statusInfo = STATUS_LABELS[trade.status] || STATUS_LABELS.PROPOSED;
         const StatusIcon = statusInfo.icon;
 

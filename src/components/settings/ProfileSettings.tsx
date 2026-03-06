@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Camera, Loader2, MapPin, Phone, ShieldCheck, X, CheckCircle, Search, UserMinus, AlertTriangle } from "lucide-react";
+import { Camera, Loader2, MapPin, Phone, ShieldCheck, X, CheckCircle, Search, UserMinus, AlertTriangle, Link as LinkIcon, Unlink } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import { lookupPostalCode, PostalResult } from "@/lib/postal";
@@ -44,11 +44,17 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
     const [addressSaved, setAddressSaved] = useState(false);
     const [addressError, setAddressError] = useState("");
 
+    // X Link
+    const [xUsername, setXUsername] = useState<string | null>(null);
+    const [displayNameSource, setDisplayNameSource] = useState<"manual" | "twitter">("manual");
+    const [isXLinked, setIsXLinked] = useState(false);
+    const [xLinkLoading, setXLinkLoading] = useState(false);
+
     // General
     const [saving, setSaving] = useState(false);
     const [profileSaved, setProfileSaved] = useState(false);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
-    const [activeTab, setActiveTab] = useState<"profile" | "phone" | "address" | "account">("profile");
+    const [activeTab, setActiveTab] = useState<"profile" | "phone" | "address" | "x_link" | "account">("profile");
 
     // Delete Account
     const [deleting, setDeleting] = useState(false);
@@ -60,7 +66,7 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
         async function load() {
             const { data: profile } = await supabase
                 .from("profiles")
-                .select("display_name, avatar_url, phone_verified")
+                .select("display_name, avatar_url, phone_verified, x_username, display_name_source")
                 .eq("id", user!.id)
                 .single();
             if (profile) {
@@ -68,6 +74,8 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                 setAvatarUrl(profile.avatar_url);
                 setPhoneVerified(profile.phone_verified || false);
                 setPhoneNumber(user!.phone || "");
+                setXUsername(profile.x_username || null);
+                setDisplayNameSource(profile.display_name_source || "manual");
             }
 
             const { data: addr } = await supabase
@@ -76,6 +84,11 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                 .eq("user_id", user!.id)
                 .maybeSingle();
             if (addr) setAddress(addr);
+
+            // X連携状態の確認 (app_metadataを見る)
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            const providers = currentUser?.app_metadata?.providers || [];
+            setIsXLinked(providers.includes("twitter"));
         }
         load();
     }, [user, supabase]);
@@ -193,13 +206,50 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
     const saveProfile = async () => {
         if (!user) return;
         setSaving(true);
-        const { error } = await supabase.from("profiles").update({ display_name: displayName }).eq("id", user.id);
+        const { error } = await supabase
+            .from("profiles")
+            .update({ display_name: displayName, display_name_source: displayNameSource })
+            .eq("id", user.id);
         setSaving(false);
         if (!error) {
             setProfileSaved(true);
             onSaved?.();
             setTimeout(() => setProfileSaved(false), 2000);
         }
+    };
+
+    // ===== X Link / Unlink =====
+    const handleXLink = async () => {
+        setXLinkLoading(true);
+        const { error } = await supabase.auth.linkIdentity({ provider: 'twitter' });
+        if (error) {
+            alert("Xアカウントの連携に失敗しました: " + error.message);
+        }
+        // linkIdentityはリダイレクトするためここは呼ばれない事が多い
+        setXLinkLoading(false);
+    };
+
+    const handleXUnlink = async () => {
+        if (!user || !confirm("Xとの連携を解除しますか？")) return;
+        setXLinkLoading(true);
+        const { data: identities } = await supabase.auth.getUserIdentities();
+        const twitterIdentity = identities?.identities.find(i => i.provider === 'twitter');
+
+        if (twitterIdentity) {
+            const { error } = await supabase.auth.unlinkIdentity(twitterIdentity);
+            if (!error) {
+                setIsXLinked(false);
+                setXUsername(null);
+                setDisplayNameSource("manual");
+                await supabase.from("profiles").update({
+                    x_username: null,
+                    display_name_source: "manual"
+                }).eq("id", user.id);
+            } else {
+                alert("解除に失敗しました: " + error.message);
+            }
+        }
+        setXLinkLoading(false);
     };
 
     // ===== Save Address =====
@@ -230,8 +280,17 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
         { key: "profile" as const, label: "プロフィール", icon: Camera },
         { key: "phone" as const, label: "電話認証", icon: Phone },
         { key: "address" as const, label: "住所管理", icon: MapPin },
+        { key: "x_link" as const, label: "X連携", icon: LinkIcon },
         { key: "account" as const, label: "アカウント", icon: UserMinus },
     ];
+
+    function XLogo({ className = "h-4 w-4" }: { className?: string }) {
+        return (
+            <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+        );
+    }
 
     return (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center animate-fade-in">
@@ -483,6 +542,108 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                             <button onClick={saveAddress} disabled={saving} className="btn btn-primary w-full py-3 disabled:opacity-50">
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "住所を保存する"}
                             </button>
+                        </div>
+                    )}
+
+                    {/* ===== X Link Tab ===== */}
+                    {activeTab === "x_link" && (
+                        <div className="space-y-4 animate-fade-in">
+                            <div className="bg-foreground/5 rounded-2xl p-3">
+                                <p className="text-xs font-bold text-foreground flex items-center gap-1.5"><XLogo className="text-foreground" /> X（Twitter）連携</p>
+                                <p className="text-[10px] text-muted mt-0.5">
+                                    Xアカウントを連携すると、ログインが簡単になり、Xのユーザー名を表示名として使用できます。
+                                </p>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="text-xs font-bold text-muted block">連携ステータス</label>
+                                {isXLinked ? (
+                                    <div className="card p-4 border border-border flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-foreground text-white flex items-center justify-center">
+                                                <XLogo className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold">連携済み</p>
+                                                {xUsername && <p className="text-xs text-muted">@{xUsername}</p>}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleXUnlink}
+                                            disabled={xLinkLoading}
+                                            className="btn btn-outline text-xs px-3 py-1.5 gap-1.5"
+                                        >
+                                            {xLinkLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Unlink className="h-3 w-3" />}
+                                            解除
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="card p-4 border border-border flex flex-col items-center justify-center space-y-3 text-center">
+                                        <div className="w-12 h-12 rounded-full bg-foreground/10 text-foreground flex items-center justify-center mb-1">
+                                            <XLogo className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold">未連携</p>
+                                            <p className="text-xs text-muted">アカウントを連携していません</p>
+                                        </div>
+                                        <button
+                                            onClick={handleXLink}
+                                            disabled={xLinkLoading}
+                                            className="btn bg-foreground text-white hover:bg-foreground/90 w-full py-2.5 mt-2 gap-2"
+                                        >
+                                            {xLinkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LinkIcon className="h-4 w-4" />}
+                                            Xアカウントを連携する
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 表示名の選択（連携済みの場合のみ表示） */}
+                            {isXLinked && xUsername && (
+                                <div className="space-y-3 pt-4 border-t border-border mt-4">
+                                    <label className="text-xs font-bold text-muted block">スワコレでの表示名</label>
+
+                                    <div className="space-y-2">
+                                        <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${displayNameSource === "manual" ? "border-primary bg-primary/5" : "border-border hover:bg-surface"}`}>
+                                            <input
+                                                type="radio"
+                                                name="displayNameSource"
+                                                checked={displayNameSource === "manual"}
+                                                onChange={() => setDisplayNameSource("manual")}
+                                                className="w-4 h-4 text-primary focus:ring-primary"
+                                            />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-bold">手動設定を使う</p>
+                                                <p className="text-xs text-muted">{displayName}</p>
+                                            </div>
+                                        </label>
+
+                                        <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${displayNameSource === "twitter" ? "border-primary bg-primary/5" : "border-border hover:bg-surface"}`}>
+                                            <input
+                                                type="radio"
+                                                name="displayNameSource"
+                                                checked={displayNameSource === "twitter"}
+                                                onChange={() => setDisplayNameSource("twitter")}
+                                                className="w-4 h-4 text-primary focus:ring-primary"
+                                            />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-bold">Xの表示名を使う</p>
+                                                <p className="text-xs text-muted">@{xUsername}</p>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    {profileSaved && (
+                                        <div className="flex items-center gap-2 text-success text-xs font-bold animate-fade-in mt-2">
+                                            <CheckCircle className="h-4 w-4" /> 保存しました！
+                                        </div>
+                                    )}
+
+                                    <button onClick={saveProfile} disabled={saving} className="btn btn-primary w-full py-3 mt-4 disabled:opacity-50">
+                                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "設定を保存する"}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                     {/* ===== Account Tab ===== */}
