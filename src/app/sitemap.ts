@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
+import { createClient } from "@supabase/supabase-js";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://swacole.com";
 
-    return [
+    const sitemapEntries: MetadataRoute.Sitemap = [
         {
             url: siteUrl,
             lastModified: new Date(),
@@ -41,4 +42,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.3,
         },
     ];
+
+    // 動的アイテムページのサイトマップを追加
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (supabaseUrl && supabaseKey) {
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // 公開されているアイテムIDを取得 (最大1000件程度)
+        const { data: items } = await supabase
+            .from("user_items")
+            .select("id, updated_at")
+            .eq("is_public", true)
+            .order("updated_at", { ascending: false })
+            .limit(1000);
+
+        if (items) {
+            const itemEntries = items.map((item) => ({
+                url: `${siteUrl}/item/${item.id}`,
+                lastModified: new Date(item.updated_at),
+                changeFrequency: "weekly" as const,
+                priority: 0.7,
+            }));
+            sitemapEntries.push(...itemEntries);
+        }
+    }
+
+    return sitemapEntries;
 }

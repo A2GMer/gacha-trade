@@ -80,10 +80,10 @@ export function HeroCarousel() {
                                 <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full mb-3 border border-white/30 shadow-sm">
                                     ガチャ・くじ・推し活グッズ
                                 </span>
-                                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-2 drop-shadow-md">
+                                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-2 drop-shadow-md">
                                     ダブったアイテム、<br />
                                     <span className="text-yellow-300">ワクワクに交換！</span>
-                                </h2>
+                                </h1>
                                 <p className="text-sm sm:text-base text-white/95 mb-6 drop-shadow-sm font-medium hidden sm:block">
                                     手数料0円・送料だけで安全にスワップ
                                 </p>

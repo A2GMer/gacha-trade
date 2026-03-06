@@ -1,6 +1,13 @@
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { Header } from "@/components/layout/Header";
+import type { Metadata } from "next";
+
+const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME || "スワコレ";
+
+export const metadata: Metadata = {
+    title: `特定商取引法に基づく表記 | ${SITE_NAME}`,
+    description: `${SITE_NAME}（スワコレ）の特定商取引に関する法律に基づく表記です。`,
+};
 
 export default function TokushohoPage() {
     return (
