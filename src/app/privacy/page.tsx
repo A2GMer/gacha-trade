@@ -48,6 +48,15 @@ export default function PrivacyPolicyPage() {
                         <h3 className="font-bold text-base text-foreground">第4条（第三者への提供）</h3>
                         <p>当サービスは、ユーザーの同意がない限り、事前に第三者に個人情報を提供することはありません。ただし、取引が成立した場合に限り、商品の発送目的において、当該取引の相手方に住所・氏名等を開示します。</p>
                     </section>
+
+                    <section className="space-y-2 text-justify">
+                        <h3 className="font-bold text-base text-foreground">第5条（お問い合わせ窓口）</h3>
+                        <p>本ポリシーに関するお問い合わせは、当サービスの「お問い合わせフォーム」よりお願いいたします。</p>
+                    </section>
+
+                    <div className="pt-8 text-right text-xs text-muted">
+                        <p>2024年3月1日 制定</p>
+                    </div>
                 </div>
             </div>
         </div>

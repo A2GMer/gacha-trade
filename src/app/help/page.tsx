@@ -160,7 +160,7 @@ export default function HelpPage() {
                     <p className="text-sm text-muted mb-4">
                         運営サポートまで直接お問い合わせください
                     </p>
-                    <button className="btn btn-primary px-8">お問い合わせフォーム</button>
+                    <Link href="/contact" className="btn btn-primary px-8 inline-block">お問い合わせフォーム</Link>
                 </div>
             </div>
         </div>

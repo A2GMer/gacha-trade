@@ -56,10 +56,14 @@ export default function TermsPage() {
                     </section>
 
                     <section className="space-y-2 text-justify">
-                        <h3 className="font-bold text-base text-foreground">第4条（自己責任の原則等）</h3>
+                        <h3 className="font-bold text-base text-foreground">第5条（自己責任の原則等）</h3>
                         <p>1. ユーザーは、本サービスを利用して行う取引やメッセージの交換等において、自己の責任においてこれを行うものとします。</p>
                         <p>2. 取引に関する紛争等が発生した場合、原則として当事者間で解決するものとし、当サービスは運営上必要な限度でのみ介入するものとします。</p>
                     </section>
+
+                    <div className="pt-8 text-right text-xs text-muted">
+                        <p>2024年3月1日 制定</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -162,6 +162,9 @@ export default function ContactPage() {
                             <><Send className="h-4 w-4" /> 送信する</>
                         )}
                     </button>
+                    <p className="text-xs text-muted text-center pt-2">
+                        ご入力いただいたメールアドレス宛に、担当者より数日中にご返信いたします。
+                    </p>
                 </div>
             </div>
         </div>

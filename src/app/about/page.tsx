@@ -26,19 +26,22 @@ export default function AboutPage() {
                         </div>
                         <div className="grid grid-cols-3 border-b border-border pb-2">
                             <span className="font-bold text-foreground">運営事業者</span>
-                            <span className="col-span-2">株式会社〇〇（※仮設）</span>
-                        </div>
-                        <div className="grid grid-cols-3 border-b border-border pb-2">
-                            <span className="font-bold text-foreground">代表責任者</span>
-                            <span className="col-span-2">鈴木 一郎</span>
+                            <span className="col-span-2">スワコレ運営事務局</span>
                         </div>
                         <div className="grid grid-cols-3 border-b border-border pb-2">
                             <span className="font-bold text-foreground">所在地</span>
-                            <span className="col-span-2">〒100-0000<br />東京都千代田区〇〇1-2-3</span>
+                            <span className="col-span-2">
+                                <span className="text-xs text-muted block">※ご請求があった場合、遅滞なく開示いたします。</span>
+                            </span>
                         </div>
-                        <div className="grid grid-cols-3 border-b border-border pb-2">
+                        <div className="grid grid-cols-3 border-b border-border pb-2 items-center">
                             <span className="font-bold text-foreground">連絡先</span>
-                            <span className="col-span-2">info@example.com</span>
+                            <span className="col-span-2">
+                                <Link href="/contact" className="text-primary hover:underline text-xs flex items-center gap-1">
+                                    お問い合わせフォームへ
+                                </Link>
+                                <span className="text-xs text-muted block mt-1">※ご請求があった場合、連絡先メール等を遅滞なく開示いたします。</span>
+                            </span>
                         </div>
                     </div>
                 </div>

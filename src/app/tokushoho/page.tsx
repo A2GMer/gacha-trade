@@ -30,34 +30,32 @@ export default function TokushohoPage() {
                         <div className="border border-border rounded-xl divide-y divide-border overflow-hidden">
                             <dl className="grid grid-cols-1 sm:grid-cols-3 text-sm">
                                 <dt className="bg-surface font-bold p-4 text-muted">販売事業者名</dt>
-                                <dd className="bg-background p-4 sm:col-span-2">事業者名（または個人名）を記載</dd>
-                            </dl>
-                            <dl className="grid grid-cols-1 sm:grid-cols-3 text-sm">
-                                <dt className="bg-surface font-bold p-4 text-muted">運営責任者名</dt>
-                                <dd className="bg-background p-4 sm:col-span-2">代表者名または責任者名を記載</dd>
+                                <dd className="bg-background p-4 sm:col-span-2">
+                                    スワコレ運営事務局<br />
+                                    <span className="text-xs text-muted block mt-1">※個人事業主として運営しており、氏名および詳細な事業者情報はご請求があった場合、遅滞なく開示いたします。</span>
+                                </dd>
                             </dl>
                             <dl className="grid grid-cols-1 sm:grid-cols-3 text-sm">
                                 <dt className="bg-surface font-bold p-4 text-muted">所在地</dt>
                                 <dd className="bg-background p-4 sm:col-span-2">
-                                    〒000-0000<br />
-                                    東京都〇〇区〇〇 1-2-3 〇〇ビル1F<br />
-                                    <span className="text-xs text-muted block mt-1">※ご請求があった場合、遅滞なく開示いたします。</span>
+                                    <span className="text-xs text-muted block">※ご請求があった場合、遅滞なく開示いたします。</span>
                                 </dd>
                             </dl>
                             <dl className="grid grid-cols-1 sm:grid-cols-3 text-sm">
                                 <dt className="bg-surface font-bold p-4 text-muted">連絡先</dt>
                                 <dd className="bg-background p-4 sm:col-span-2">
-                                    メール: support@gacha-trade.example.com<br />
-                                    電話番号: 03-0000-0000<br />
-                                    <span className="text-xs text-muted block mt-1">※原則としてサービスの「お問い合わせ」よりご連絡ください。</span>
+                                    <span className="text-xs text-muted block mb-2">ご請求があった場合、電話番号等を遅滞なく開示いたします。原則としてサービス内の「お問い合わせ」よりご連絡ください。</span>
+                                    <Link href="/contact" className="text-primary hover:underline font-bold text-xs inline-flex items-center gap-1">
+                                        お問い合わせフォームはこちら
+                                    </Link>
                                 </dd>
                             </dl>
                             <dl className="grid grid-cols-1 sm:grid-cols-3 text-sm">
                                 <dt className="bg-surface font-bold p-4 text-muted">販売価格・手数料</dt>
                                 <dd className="bg-background p-4 sm:col-span-2 space-y-2">
                                     <p>・基本利用料：無料</p>
-                                    <p>・デポジット：取引1回につき〇〇円</p>
-                                    <p className="text-xs text-muted">※デポジットは正常に取引が完了した際に全額返還（または決済枠の解除）されます。</p>
+                                    <p>・取引デポジット：取引成立1回につき与信枠の確保を行います。</p>
+                                    <p className="text-xs text-muted">※金額等の条件に変更がある場合は事前にサイト内でお知らせします。<br />※デポジットは正常に取引が完了した際に決済枠の解除（全額返還）が行われます。</p>
                                 </dd>
                             </dl>
                             <dl className="grid grid-cols-1 sm:grid-cols-3 text-sm">
