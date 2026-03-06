@@ -37,6 +37,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-[1.02]">
           <img src="/logo.svg" alt="スワコレ" className="h-8 sm:h-9 w-auto object-contain" />
+          <span className="font-bold text-lg tracking-tight">スワコレ</span>
         </Link>
 
         {/* Search Bar */}
