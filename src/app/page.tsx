@@ -52,6 +52,7 @@ interface PopularCatalogItem {
   manufacturer: string;
   series: string;
   image_url: string | null;
+  officialImageUrl: string | null;
   listingCount: number;
   wantCount: number;
   score: number;
@@ -146,6 +147,7 @@ export default function Home() {
               manufacturer: catalog.manufacturer,
               series: catalog.series,
               image_url: imageUrl,
+              officialImageUrl: catalog.image_url,
               listingCount,
               wantCount,
               score: listingCount * 3 + wantCount * 2,
@@ -169,6 +171,8 @@ export default function Home() {
 
     fetchData();
   }, [supabase]);
+
+  const officialCatalogItems = featuredCatalogItems.filter((catalog) => catalog.officialImageUrl).slice(0, 12);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -345,6 +349,48 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {officialCatalogItems.length > 0 && (
+        <div className="container mx-auto max-w-5xl px-4 pb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold">{"\u516c\u5f0f\u30ab\u30bf\u30ed\u30b0"}</h2>
+            <Link href="/search" className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5">
+              {"\u3059\u3079\u3066\u898b\u308b"} <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
+            {officialCatalogItems.map((catalog) => (
+              <Link key={catalog.id} href={`/search?catalogItemId=${encodeURIComponent(catalog.id)}`} className="block group">
+                <div className="card">
+                  <div className="relative aspect-square overflow-hidden">
+                    <Image
+                      src={catalog.officialImageUrl || "/logo.svg"}
+                      alt={`${catalog.name} official image`}
+                      fill
+                      unoptimized
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200"
+                    />
+                    <div className="absolute top-2 left-2 z-20">
+                      <span className="badge bg-foreground/70 text-white">{"\u516c\u5f0f"}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 space-y-1.5">
+                    <h3 className="text-sm font-medium line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                      {catalog.name}
+                    </h3>
+                    <p className="text-[10px] text-muted truncate">
+                      {catalog.manufacturer} / {catalog.series}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {!user && (
         <div className="bg-white py-10 px-4 border-t border-border">
