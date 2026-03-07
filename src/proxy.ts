@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED_ROUTES = ["/sell", "/mypage", "/trade", "/notifications"];
 const AUTH_ROUTES = ["/login"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request });
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -49,6 +49,32 @@ export default function MyPage() {
     const [loading, setLoading] = useState(true);
     const [showSettings, setShowSettings] = useState(false);
 
+    const refreshData = async () => {
+        if (!user) return;
+
+        setLoading(true);
+        const [profRes, itemsRes] = await Promise.all([
+            supabase
+                .from("profiles")
+                .select("display_name, avatar_url, rating_avg, trade_count, phone_verified, role, x_username, display_name_source")
+                .eq("id", user.id)
+                .single(),
+            supabase
+                .from("user_items")
+                .select("id, is_tradeable")
+                .eq("owner_id", user.id),
+        ]);
+
+        if (profRes.data) setProfile(profRes.data);
+        if (itemsRes.data) {
+            setStats({
+                total: itemsRes.data.length,
+                tradeable: itemsRes.data.filter((i) => i.is_tradeable).length,
+            });
+        }
+        setLoading(false);
+    };
+
     useEffect(() => {
         if (!user) return;
 
@@ -249,7 +275,7 @@ export default function MyPage() {
 
             {/* Settings Modal */}
             {showSettings && (
-                <ProfileSettings onClose={() => setShowSettings(false)} onSaved={() => fetchData()} />
+                <ProfileSettings onClose={() => setShowSettings(false)} onSaved={() => refreshData()} />
             )}
         </div>
     );

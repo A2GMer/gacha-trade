@@ -228,7 +228,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             .on(
                 "postgres_changes",
                 { event: "INSERT", schema: "public", table: "trade_messages", filter: `trade_id=eq.${id}` },
-                () => {
+                (payload) => {
                     setMessages((prev) => [...prev, payload.new as Message]);
                 }
             )
@@ -378,7 +378,11 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         if (!latestTrade) return;
 
         const isProposer = user.id === trade.proposer_id;
-        const updatePayload: Record<string, unknown> = {};
+        const updatePayload: {
+        proposer_payment_intent_id?: string;
+        receiver_payment_intent_id?: string;
+        status?: string;
+    } = {};
 
         if (isProposer) {
             updatePayload.proposer_payment_intent_id = paymentIntentId;

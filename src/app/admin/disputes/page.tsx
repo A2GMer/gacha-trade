@@ -154,8 +154,8 @@ export default function AdminDisputesPage() {
                                             <p className="font-mono text-[10px] break-all">{d.trades.proposer_payment_intent_id || "未決済"}</p>
                                             {d.trades.proposer_payment_intent_id && (
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => handleStripeAction('cancel', d.trades, d.trades.proposer_id)} className="btn text-[10px] py-1 bg-success/10 text-success border border-success/20 flex-1"><CheckCircle className="h-3 w-3 mr-1" />返還(Cancel)</button>
-                                                    <button onClick={() => handleStripeAction('capture', d.trades, d.trades.proposer_id)} className="btn text-[10px] py-1 bg-danger/10 text-danger border border-danger/20 flex-1"><XCircle className="h-3 w-3 mr-1" />没収(Capture)</button>
+                                                    <button onClick={() => handleStripeAction('cancel', d.trades!, d.trades!.proposer_id)} className="btn text-[10px] py-1 bg-success/10 text-success border border-success/20 flex-1"><CheckCircle className="h-3 w-3 mr-1" />返還(Cancel)</button>
+                                                    <button onClick={() => handleStripeAction('capture', d.trades!, d.trades!.proposer_id)} className="btn text-[10px] py-1 bg-danger/10 text-danger border border-danger/20 flex-1"><XCircle className="h-3 w-3 mr-1" />没収(Capture)</button>
                                                 </div>
                                             )}
                                         </div>
@@ -164,8 +164,8 @@ export default function AdminDisputesPage() {
                                             <p className="font-mono text-[10px] break-all">{d.trades.receiver_payment_intent_id || "未決済"}</p>
                                             {d.trades.receiver_payment_intent_id && (
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => handleStripeAction('cancel', d.trades, d.trades.receiver_id)} className="btn text-[10px] py-1 bg-success/10 text-success border border-success/20 flex-1"><CheckCircle className="h-3 w-3 mr-1" />返還(Cancel)</button>
-                                                    <button onClick={() => handleStripeAction('capture', d.trades, d.trades.receiver_id)} className="btn text-[10px] py-1 bg-danger/10 text-danger border border-danger/20 flex-1"><XCircle className="h-3 w-3 mr-1" />没収(Capture)</button>
+                                                    <button onClick={() => handleStripeAction('cancel', d.trades!, d.trades!.receiver_id)} className="btn text-[10px] py-1 bg-success/10 text-success border border-success/20 flex-1"><CheckCircle className="h-3 w-3 mr-1" />返還(Cancel)</button>
+                                                    <button onClick={() => handleStripeAction('capture', d.trades!, d.trades!.receiver_id)} className="btn text-[10px] py-1 bg-danger/10 text-danger border border-danger/20 flex-1"><XCircle className="h-3 w-3 mr-1" />没収(Capture)</button>
                                                 </div>
                                             )}
                                         </div>
