@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRightLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useEffect, useState } from "react";
@@ -28,20 +29,45 @@ interface ItemWithProfile {
   };
 }
 
-interface Manufacturer {
+interface ListingCatalogRow {
+  catalog_item_id: string;
+  images: string[];
+}
+
+interface CatalogItemRow {
+  id: string;
+  name: string;
   manufacturer: string;
+  series: string;
+  image_url: string | null;
+}
+
+interface WantCatalogRow {
+  catalog_item_id: string;
+}
+
+interface PopularCatalogItem {
+  id: string;
+  name: string;
+  manufacturer: string;
+  series: string;
+  image_url: string | null;
+  listingCount: number;
+  wantCount: number;
+  score: number;
 }
 
 export default function Home() {
   const { user } = useAuth();
   const [items, setItems] = useState<ItemWithProfile[]>([]);
-  const [manufacturers, setManufacturers] = useState<string[]>([]);
+  const [featuredCatalogItems, setFeaturedCatalogItems] = useState<PopularCatalogItem[]>([]);
+  const [activeCatalogItems, setActiveCatalogItems] = useState<PopularCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
     async function fetchData() {
-      const [itemsRes, mfgRes] = await Promise.all([
+      const [itemsRes, catalogRes, listingRes, wantsRes] = await Promise.all([
         supabase
           .from("user_items")
           .select(`
@@ -55,21 +81,95 @@ export default function Home() {
           .limit(12),
         supabase
           .from("catalog_items")
-          .select("manufacturer")
-          .eq("is_approved", true),
+          .select("id, name, manufacturer, series, image_url")
+          .eq("is_approved", true)
+          .limit(1000),
+        supabase
+          .from("user_items")
+          .select("catalog_item_id, images")
+          .eq("is_public", true)
+          .neq("trade_status", "COMPLETED")
+          .limit(2000),
+        supabase
+          .from("wants")
+          .select("catalog_item_id")
+          .limit(5000),
       ]);
 
-      if (itemsRes.data) setItems(itemsRes.data as unknown as ItemWithProfile[]);
-      if (mfgRes.data) {
-        const unique = [...new Set((mfgRes.data as Manufacturer[]).map((m) => m.manufacturer))];
-        setManufacturers(unique.slice(0, 10));
+      if (itemsRes.data) {
+        setItems(itemsRes.data as unknown as ItemWithProfile[]);
       }
+
+      const listingCountMap = new Map<string, number>();
+      const listingImageMap = new Map<string, string>();
+
+      if (listingRes.data) {
+        for (const row of listingRes.data as ListingCatalogRow[]) {
+          if (!row.catalog_item_id) {
+            continue;
+          }
+
+          listingCountMap.set(row.catalog_item_id, (listingCountMap.get(row.catalog_item_id) || 0) + 1);
+
+          if (!listingImageMap.has(row.catalog_item_id) && row.images?.[0]) {
+            listingImageMap.set(row.catalog_item_id, row.images[0]);
+          }
+        }
+      }
+
+      const wantCountMap = new Map<string, number>();
+
+      if (wantsRes.data) {
+        for (const row of wantsRes.data as WantCatalogRow[]) {
+          if (!row.catalog_item_id) {
+            continue;
+          }
+
+          wantCountMap.set(row.catalog_item_id, (wantCountMap.get(row.catalog_item_id) || 0) + 1);
+        }
+      }
+
+      if (catalogRes.data) {
+        const ranked = (catalogRes.data as CatalogItemRow[])
+          .map((catalog) => {
+            const listingCount = listingCountMap.get(catalog.id) || 0;
+            const wantCount = wantCountMap.get(catalog.id) || 0;
+            const imageUrl = catalog.image_url || listingImageMap.get(catalog.id) || null;
+
+            if (!imageUrl) {
+              return null;
+            }
+
+            return {
+              id: catalog.id,
+              name: catalog.name,
+              manufacturer: catalog.manufacturer,
+              series: catalog.series,
+              image_url: imageUrl,
+              listingCount,
+              wantCount,
+              score: listingCount * 3 + wantCount * 2,
+            } as PopularCatalogItem;
+          })
+          .filter((catalog): catalog is PopularCatalogItem => catalog !== null && catalog.score > 0)
+          .sort(
+            (a, b) =>
+              b.score - a.score ||
+              b.listingCount - a.listingCount ||
+              b.wantCount - a.wantCount ||
+              a.name.localeCompare(b.name, "ja")
+          );
+
+        setFeaturedCatalogItems(ranked.slice(0, 12));
+        setActiveCatalogItems(ranked.filter((catalog) => catalog.listingCount > 0).slice(0, 12));
+      }
+
       setLoading(false);
     }
+
     fetchData();
   }, [supabase]);
 
-  // JSON-LD
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -77,8 +177,8 @@ export default function Home() {
         "@type": "WebSite",
         "@id": "https://swacole.com/#website",
         url: "https://swacole.com",
-        name: "スワコレ",
-        description: "カプセルトイ（ガチャガチャ）の物々交換プラットフォーム",
+        name: "ガチャトレ",
+        description: "カプセルトイ（ガチャ）の交換サービス",
         inLanguage: "ja",
         potentialAction: {
           "@type": "SearchAction",
@@ -92,71 +192,120 @@ export default function Home() {
       {
         "@type": "Organization",
         "@id": "https://swacole.com/#organization",
-        name: "スワコレ",
+        name: "ガチャトレ",
         url: "https://swacole.com",
-        logo: { "@type": "ImageObject", url: "https://swacole.com/logo.webp" },
+        logo: { "@type": "ImageObject", url: "https://swacole.com/logo.svg" },
       },
     ],
   };
 
   return (
     <div className="bg-background min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <HeroCarousel />
 
-      {/* ===== Logged-in Dashboard Link ===== */}
       {user && (
         <div className="container mx-auto max-w-5xl px-4 -mt-4 relative z-20">
-          <Link
-            href="/dashboard"
-            className="card p-3 flex items-center gap-3 hover:shadow-md transition-shadow"
-          >
+          <Link href="/dashboard" className="card p-3 flex items-center gap-3 hover:shadow-md transition-shadow">
             <div className="bg-primary text-white p-2 rounded-lg">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">取引ダッシュボード</p>
-              <p className="text-xs text-muted">交換の進行状況を確認する</p>
+              <p className="font-semibold text-sm">ダッシュボードへ</p>
+              <p className="text-xs text-muted">進行中の交換や通知を確認できます</p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted" />
           </Link>
         </div>
       )}
 
-      {/* ===== Category (Manufacturer) ===== */}
-      {manufacturers.length > 0 && (
+      {featuredCatalogItems.length > 0 && (
         <div className="container mx-auto max-w-5xl px-4 pt-6">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold">メーカーから探す</h2>
+            <div>
+              <h2 className="text-sm font-bold">人気カタログ</h2>
+              <p className="text-[11px] text-muted">欲しい登録と出品数から表示しています</p>
+            </div>
             <Link href="/search" className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5">
               すべて見る <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-            {manufacturers.map((mfg) => (
+
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
+            {featuredCatalogItems.map((catalog) => (
               <Link
-                key={mfg}
-                href={`/search?manufacturer=${encodeURIComponent(mfg)}`}
-                className="category-circle"
+                key={catalog.id}
+                href={`/search?catalogItemId=${encodeURIComponent(catalog.id)}`}
+                className="card group overflow-hidden"
               >
-                <div className="icon-wrap">
-                  <span className="text-base">🎰</span>
+                <div className="relative aspect-square bg-background">
+                  <Image
+                    src={catalog.image_url || "/logo.svg"}
+                    alt={`${catalog.name} 公式画像`}
+                    fill
+                    unoptimized
+                    sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <span className="absolute top-1.5 left-1.5 badge bg-primary text-white text-[10px]">
+                    出品{catalog.listingCount}
+                  </span>
                 </div>
-                <span>{mfg}</span>
+                <div className="p-2">
+                  <p className="text-[11px] font-bold line-clamp-2 leading-snug">{catalog.name}</p>
+                  <p className="text-[10px] text-muted mt-1">欲しい {catalog.wantCount}</p>
+                </div>
               </Link>
             ))}
           </div>
         </div>
       )}
 
-      {/* ===== Item Grid ===== */}
+      {activeCatalogItems.length > 0 && (
+        <div className="container mx-auto max-w-5xl px-4 pt-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-bold">出品中の人気カタログ</h2>
+              <p className="text-[11px] text-muted">いま交換できるアイテム</p>
+            </div>
+            <Link href="/search" className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5">
+              すべて見る <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
+            {activeCatalogItems.map((catalog) => (
+              <Link
+                key={catalog.id}
+                href={`/search?catalogItemId=${encodeURIComponent(catalog.id)}`}
+                className="card group overflow-hidden"
+              >
+                <div className="relative aspect-square bg-background">
+                  <Image
+                    src={catalog.image_url || "/logo.svg"}
+                    alt={`${catalog.name} 公式画像`}
+                    fill
+                    unoptimized
+                    sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <span className="absolute top-1.5 left-1.5 badge bg-primary text-white text-[10px]">
+                    {catalog.listingCount}件
+                  </span>
+                </div>
+                <div className="p-2">
+                  <p className="text-[11px] font-bold line-clamp-2 leading-snug">{catalog.name}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto max-w-5xl px-4 pt-5 pb-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-bold">新着アイテム</h2>
+          <h2 className="text-sm font-bold">新着出品</h2>
           <Link href="/search" className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5">
             すべて見る <ChevronRight className="h-3 w-3" />
           </Link>
@@ -168,8 +317,8 @@ export default function Home() {
           </div>
         ) : items.length === 0 ? (
           <div className="empty-state card py-12">
-            <p className="text-2xl">🎰</p>
-            <p className="message">まだアイテムがありません</p>
+            <p className="text-2xl">📦</p>
+            <p className="message">まだ出品がありません</p>
             <Link href="/sell" className="btn btn-primary px-5 py-2.5 text-sm inline-flex">
               最初のアイテムを出品する
             </Link>
@@ -197,76 +346,31 @@ export default function Home() {
         )}
       </div>
 
-      {/* ===== How It Works (non-logged-in only) ===== */}
       {!user && (
         <div className="bg-white py-10 px-4 border-t border-border">
           <div className="container mx-auto max-w-2xl">
-            <h2 className="text-base font-bold text-center mb-2">交換のながれ</h2>
-            <p className="text-xs text-muted text-center mb-8">お金のやり取りは一切なし。送料だけで交換できます。</p>
+            <h2 className="text-base font-bold text-center mb-2">使い方はかんたん</h2>
+            <p className="text-xs text-muted text-center mb-8">ガチャを選んで、出品を見て、交渉するだけです。</p>
 
-            <div className="space-y-0">
-              {[
-                {
-                  num: "1",
-                  title: "写真を撮って登録",
-                  desc: "交換に出したいアイテムの写真を撮って、タグをつけて登録するだけ。",
-                  detail: null,
-                },
-                {
-                  num: "2",
-                  title: "アイテムを登録する",
-                  desc: "ダブったガチャガチャをカタログから選んで登録。写真と状態（未開封 / 開封済み）を設定します。",
-                  detail: null,
-                },
-                {
-                  num: "3",
-                  title: "欲しいアイテムを探す",
-                  desc: "メーカーやシリーズで検索。気になるアイテムが見つかったら、出品者の評価もチェックできます。",
-                  detail: null,
-                },
-                {
-                  num: "4",
-                  title: "交換を提案する",
-                  desc: "欲しいアイテムを見つけたら「交換を提案」ボタンを押して、自分の出品アイテムを選んで提案を送ります。",
-                  detail: "相手が承認すると取引成立。お互いの住所を登録して発送に進みます。",
-                },
-                {
-                  num: "5",
-                  title: "発送・受取で完了",
-                  desc: "お互いに商品を発送し、届いたら「受取確認」を押して取引完了。相手への評価もお忘れなく。",
-                  detail: "送料は各自負担です。定形外郵便やネコポスなど、発送方法は事前にメッセージで相談できます。",
-                },
-              ].map((step, i, arr) => (
-                <div key={i} className="flex gap-4">
-                  {/* Timeline */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold shrink-0">
-                      {step.num}
-                    </div>
-                    {i < arr.length - 1 && (
-                      <div className="w-px flex-1 bg-border my-1" />
-                    )}
-                  </div>
-                  {/* Content */}
-                  <div className={`flex-1 ${i < arr.length - 1 ? "pb-6" : "pb-2"}`}>
-                    <h3 className="font-semibold text-sm mb-1">{step.title}</h3>
-                    <p className="text-xs text-muted leading-relaxed">{step.desc}</p>
-                    {step.detail && (
-                      <p className="text-xs text-muted/70 mt-1 leading-relaxed">{step.detail}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-4">
+              <div className="card p-4">
+                <p className="text-xs font-bold">1. 公式画像からアイテムを選択</p>
+                <p className="text-xs text-muted mt-1">検索画面で公式カタログ画像を見ながら選べます。</p>
+              </div>
+              <div className="card p-4">
+                <p className="text-xs font-bold">2. 欲しい出品をチェック</p>
+                <p className="text-xs text-muted mt-1">一覧にはユーザーの実物写真が表示されます。</p>
+              </div>
+              <div className="card p-4">
+                <p className="text-xs font-bold">3. 交渉して交換成立</p>
+                <p className="text-xs text-muted mt-1">条件が合えばそのまま交換へ進めます。</p>
+              </div>
             </div>
 
             <div className="mt-8 text-center">
-              <Link
-                href="/login?tab=register"
-                className="btn btn-primary px-8 py-3 text-sm font-semibold"
-              >
+              <Link href="/login?tab=register" className="btn btn-primary px-8 py-3 text-sm font-semibold">
                 無料で始める
               </Link>
-              <p className="text-[10px] text-muted mt-2">登録は30秒・完全無料</p>
             </div>
           </div>
         </div>

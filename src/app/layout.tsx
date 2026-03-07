@@ -12,10 +12,10 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "700", "900"],
 });
 
-const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME || "スワコレ";
+const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME || "ガチャトレ";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://swacole.com";
 const SITE_DESCRIPTION =
-  "ガチャガチャ・一番くじ・推し活グッズをかんたん物々交換！ダブったアイテムを安全にスワップできるサービスです。送料のみで欲しかったアイテムが手に入ります。";
+  "ガチャトレは、不要なアイテムを交換して新しいコレクションに出会える、ぶつぶつ交換サービスです。";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -26,14 +26,17 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} | コレクターアイテムの物々交換サービス`,
+    default: `${SITE_NAME} | コレクターアイテムの交換・売買サービス`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   keywords: [
-    "ガチャガチャ", "カプセルトイ", "物々交換", "トレード",
-    "一番くじ", "推し活", "ダブり交換",
-    "スワコレ", "コレクション", "アイテム交換",
+    "ガチャトレ",
+    "コレクション",
+    "ぶつぶつ交換",
+    "トレード",
+    "アイテム交換",
+    "フリマ",
   ],
   applicationName: SITE_NAME,
   authors: [{ name: SITE_NAME }],
@@ -54,20 +57,20 @@ export const metadata: Metadata = {
     locale: "ja_JP",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} | コレクターアイテムの物々交換サービス`,
+    title: `${SITE_NAME} | コレクターアイテムの交換・売買サービス`,
     description: SITE_DESCRIPTION,
     images: [
       {
         url: "/hero-illustration.webp",
         width: 768,
         height: 512,
-        alt: "スワコレ - コレクターアイテムの物々交換プラットフォーム",
+        alt: `${SITE_NAME} サービスイメージ`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} | コレクターアイテムの物々交換サービス`,
+    title: `${SITE_NAME} | コレクターアイテムの交換・売買サービス`,
     description: SITE_DESCRIPTION,
     images: ["/hero-illustration.webp"],
   },
@@ -76,12 +79,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
       { url: "/logo.svg", type: "image/svg+xml" },
       { url: "/logo.png", type: "image/png" },
     ],
-    apple: [
-      { url: "/logo.png", type: "image/png" },
-    ],
+    apple: [{ url: "/logo.png", type: "image/png" }],
   },
 };
 
