@@ -52,10 +52,17 @@ interface PopularCatalogItem {
   manufacturer: string;
   series: string;
   image_url: string | null;
-  officialImageUrl: string | null;
   listingCount: number;
   wantCount: number;
   score: number;
+}
+
+interface OfficialCatalogItem {
+  id: string;
+  name: string;
+  manufacturer: string;
+  series: string;
+  image_url: string;
 }
 
 export default function Home() {
@@ -63,6 +70,7 @@ export default function Home() {
   const [items, setItems] = useState<ItemWithProfile[]>([]);
   const [featuredCatalogItems, setFeaturedCatalogItems] = useState<PopularCatalogItem[]>([]);
   const [activeCatalogItems, setActiveCatalogItems] = useState<PopularCatalogItem[]>([]);
+  const [officialCatalogItems, setOfficialCatalogItems] = useState<OfficialCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -131,7 +139,23 @@ export default function Home() {
       }
 
       if (catalogRes.data) {
-        const ranked = (catalogRes.data as CatalogItemRow[])
+        const catalogRows = catalogRes.data as CatalogItemRow[];
+
+        setOfficialCatalogItems(
+          catalogRows
+            .filter((catalog) => Boolean(catalog.image_url))
+            .sort((a, b) => a.name.localeCompare(b.name, "ja"))
+            .slice(0, 12)
+            .map((catalog) => ({
+              id: catalog.id,
+              name: catalog.name,
+              manufacturer: catalog.manufacturer,
+              series: catalog.series,
+              image_url: catalog.image_url as string,
+            }))
+        );
+
+        const ranked = catalogRows
           .map((catalog) => {
             const listingCount = listingCountMap.get(catalog.id) || 0;
             const wantCount = wantCountMap.get(catalog.id) || 0;
@@ -147,7 +171,6 @@ export default function Home() {
               manufacturer: catalog.manufacturer,
               series: catalog.series,
               image_url: imageUrl,
-              officialImageUrl: catalog.image_url,
               listingCount,
               wantCount,
               score: listingCount * 3 + wantCount * 2,
@@ -172,7 +195,6 @@ export default function Home() {
     fetchData();
   }, [supabase]);
 
-  const officialCatalogItems = featuredCatalogItems.filter((catalog) => catalog.officialImageUrl).slice(0, 12);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -365,7 +387,7 @@ export default function Home() {
                 <div className="card">
                   <div className="relative aspect-square overflow-hidden">
                     <Image
-                      src={catalog.officialImageUrl || "/logo.svg"}
+                      src={catalog.image_url}
                       alt={`${catalog.name} official image`}
                       fill
                       unoptimized
