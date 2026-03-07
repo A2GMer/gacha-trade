@@ -80,11 +80,18 @@ export function validateSameOrigin(request: Request):
         return { ok: false, status: 400, error: "Invalid Origin header" };
     }
 
+    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    const proto = request.headers.get("x-forwarded-proto") ?? originUrl.protocol.replace(":", "");
+    const requestOrigin = host ? `${proto}://${host}` : null;
+
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     if (siteUrl) {
         try {
-            const expectedOrigin = new URL(siteUrl).origin;
-            if (originUrl.origin !== expectedOrigin) {
+            const configuredOrigin = new URL(siteUrl).origin;
+            if (
+                originUrl.origin !== configuredOrigin &&
+                (!requestOrigin || originUrl.origin !== requestOrigin)
+            ) {
                 return { ok: false, status: 403, error: "Cross-site request blocked" };
             }
             return { ok: true };
@@ -93,14 +100,11 @@ export function validateSameOrigin(request: Request):
         }
     }
 
-    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-    const proto = request.headers.get("x-forwarded-proto") ?? "https";
-    if (!host) {
+    if (!requestOrigin) {
         return { ok: false, status: 500, error: "Unable to validate request origin" };
     }
 
-    const expectedOrigin = `${proto}://${host}`;
-    if (originUrl.origin !== expectedOrigin) {
+    if (originUrl.origin !== requestOrigin) {
         return { ok: false, status: 403, error: "Cross-site request blocked" };
     }
 
