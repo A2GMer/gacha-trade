@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Camera, X, GripVertical, AlertCircle } from "lucide-react";
+import Image from "next/image";
+import { Camera, X, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
 interface ImageUploaderProps {
@@ -104,7 +105,7 @@ export function ImageUploader({ images, onChange, error, maxImages = 4 }: ImageU
                 {/* 既にアップロードされた画像 */}
                 {images.map((url, i) => (
                     <div key={i} className="aspect-square relative group rounded-2xl overflow-hidden border border-border">
-                        <img src={url} alt={`写真${i + 1}`} className="w-full h-full object-cover" />
+                        <Image src={url} alt={`Photo ${i + 1}`} fill unoptimized sizes="25vw" className="object-cover" />
                         <button
                             onClick={() => removeImage(i)}
                             className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"

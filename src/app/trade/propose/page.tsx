@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
 
 interface ItemInfo {
@@ -199,8 +200,12 @@ function ProposeContent() {
                         <div className="flex-1 text-center">
                             {selectedItemId ? (
                                 <>
-                                    <img
+                                    <Image
                                         src={myItems.find(i => i.id === selectedItemId)?.images[0] || ""}
+                                        alt="Selected item"
+                                        width={80}
+                                        height={80}
+                                        unoptimized
                                         className="w-20 h-20 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm"
                                     />
                                     <p className="badge bg-primary-light text-primary text-[8px] mx-auto">あなた</p>
@@ -221,8 +226,12 @@ function ProposeContent() {
 
                         {/* Target item */}
                         <div className="flex-1 text-center">
-                            <img
+                            <Image
                                 src={targetItem.images[0]}
+                                alt="Target item"
+                                width={80}
+                                height={80}
+                                unoptimized
                                 className="w-20 h-20 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm"
                             />
                             <p className="badge bg-secondary-light text-secondary text-[8px] mx-auto">
@@ -255,7 +264,7 @@ function ProposeContent() {
                                         : "border-border hover:border-primary/50"
                                         }`}
                                 >
-                                    <img src={item.images[0]} alt={item.catalog_items?.name} className="w-full h-full object-cover" />
+                                    <Image src={item.images[0]} alt={item.catalog_items?.name || "Catalog item"} fill unoptimized sizes="33vw" className="object-cover" />
                                     <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] px-1.5 py-1 truncate text-center">
                                         {item.catalog_items?.name}
                                     </div>

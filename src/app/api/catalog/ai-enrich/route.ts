@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient, getAuthenticatedUser } from "@/lib/api-auth";
+import { createServiceRoleClient, getAuthenticatedUser, validateSameOrigin } from "@/lib/api-auth";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
@@ -86,6 +86,11 @@ function calculateTrustScore(
 
 export async function POST(request: NextRequest) {
     try {
+        const originCheck = validateSameOrigin(request);
+        if (!originCheck.ok) {
+            return NextResponse.json({ error: originCheck.error }, { status: originCheck.status });
+        }
+
         const user = await getAuthenticatedUser();
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

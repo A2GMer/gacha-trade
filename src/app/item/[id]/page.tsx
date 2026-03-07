@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Star, ShieldCheck, Flag, Ban, ChevronLeft, MessageCircle, Heart, Edit } from "lucide-react";
+import Image from "next/image";
+import { Star, ShieldCheck, Flag, ChevronLeft, MessageCircle, Edit } from "lucide-react";
 import { ReportBlockModal } from "@/components/safety/ReportBlockModal";
 import { shareOnX } from "@/lib/share";
 import { useState, useEffect, use } from "react";
@@ -17,6 +18,8 @@ function XLogo({ className = "h-4 w-4" }: { className?: string }) {
         </svg>
     );
 }
+
+const SCHEMA_PRICE_VALID_UNTIL = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
 interface ItemData {
     id: string;
@@ -101,7 +104,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
             availability: item.is_tradeable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             priceCurrency: "JPY",
             price: "0",
-            priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            priceValidUntil: SCHEMA_PRICE_VALID_UNTIL,
             itemCondition: item.condition === "未開封" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition",
         },
     };
@@ -130,12 +133,13 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                 {/* Left: Images */}
                 <div className="space-y-3 animate-fade-in">
                     <div className="aspect-square bg-surface sm:rounded-[20px] overflow-hidden sm:border border-border sm:shadow-md -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full relative">
-                        <img
+                        <Image
                             src={item.images[selectedImage] || "/placeholder.png"}
                             alt={`${item.catalog_items?.name || "カプセルトイ"} - ${item.condition}`}
-                            width={600}
-                            height={600}
-                            className="w-full h-full object-cover transition-opacity duration-300 absolute inset-0"
+                            fill
+                            unoptimized
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            className="object-cover transition-opacity duration-300 absolute inset-0"
                         />
                     </div>
                     <div className="grid grid-cols-4 gap-2 px-4 sm:px-0 pt-2 sm:pt-0">
@@ -143,12 +147,12 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                             <button
                                 key={i}
                                 onClick={() => setSelectedImage(i)}
-                                className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === i
+                                className={`aspect-square relative rounded-lg overflow-hidden border-2 transition-all ${selectedImage === i
                                     ? "border-primary shadow-md scale-[1.02]"
                                     : "border-border hover:border-muted"
                                     }`}
                             >
-                                <img src={img} alt={`写真 ${i + 1}枚目`} loading="lazy" className="w-full h-full object-cover" />
+                                <Image src={img} alt={`Photo ${i + 1}`} fill unoptimized sizes="(max-width: 768px) 20vw, 120px" className="object-cover" />
                             </button>
                         ))}
                     </div>
@@ -194,7 +198,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-lg border border-border bg-primary flex items-center justify-center text-white font-bold text-lg overflow-hidden">
                                     {item.profiles?.avatar_url ? (
-                                        <img src={item.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                        <Image src={item.profiles.avatar_url} alt="" width={48} height={48} unoptimized className="w-full h-full object-cover" />
                                     ) : (
                                         (item.profiles?.display_name || "?")[0]
                                     )}

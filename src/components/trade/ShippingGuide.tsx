@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, ChevronDown, ChevronUp, Truck, MapPin } from "lucide-react";
+import { ChevronDown, ChevronUp, Truck } from "lucide-react";
 import { useState } from "react";
 
 const SHIPPING_METHODS = [

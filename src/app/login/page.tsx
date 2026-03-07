@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { ShieldCheck, Mail, Lock, User, ArrowRight, Eye, EyeOff, ArrowRightLeft } from "lucide-react";
-import Link from "next/link";
+import { ShieldCheck, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 function XLogo({ className = "h-4 w-4" }: { className?: string }) {
     return (
@@ -85,7 +85,7 @@ export default function LoginPage() {
                 <div className="w-full max-w-md space-y-6 animate-fade-in-up">
                     {/* Logo & Tagline */}
                     <div className="text-center space-y-2">
-                        <img src="/logo.svg" alt="スワコレ" className="h-12 mx-auto object-contain" />
+                        <Image src="/logo.svg" alt="????" width={48} height={48} className="h-12 w-12 mx-auto object-contain" />
                         <p className="text-sm text-muted">カプセルトイの物々交換サービス</p>
                     </div>
 

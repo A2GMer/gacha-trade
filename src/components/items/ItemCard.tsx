@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Star, ShieldCheck } from "lucide-react";
 
 interface ItemCardProps {
@@ -43,10 +44,12 @@ export function ItemCard({
         <Link href={`/item/${id}`} className="block group">
             <div className="card">
                 <div className="relative aspect-square overflow-hidden">
-                    <img
+                    <Image
                         src={image || "/placeholder.png"}
                         alt={`${name} - ${series || ""} ${condition}`}
-                        loading="lazy"
+                        fill
+                        unoptimized
+                        sizes="(max-width: 640px) 50vw, 25vw"
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200"
                     />
                     {tradeStatus === "TRADING" && (

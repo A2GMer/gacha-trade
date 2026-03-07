@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, ArrowRightLeft, Search, ChevronRight } from "lucide-react";
+import { ArrowRightLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";

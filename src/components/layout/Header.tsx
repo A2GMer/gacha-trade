@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Bell, LogIn, LogOut, User, ArrowRightLeft } from "lucide-react";
+import Image from "next/image";
+import { Search, Bell, LogOut, User, ArrowRightLeft } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -36,7 +37,7 @@ export function Header() {
       <div className="container mx-auto px-4 h-12 flex items-center justify-between gap-3">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-[1.02]">
-          <img src="/logo.svg" alt="スワコレ" className="h-8 sm:h-9 w-auto object-contain" />
+          <Image src="/logo.svg" alt="????" width={36} height={36} className="h-8 sm:h-9 w-auto object-contain" />
           <span className="font-bold text-lg tracking-tight">スワコレ</span>
         </Link>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, HelpCircle, Info, CheckCircle, AlertCircle, Download } from "lucide-react";
+import { ChevronLeft, Info, CheckCircle, AlertCircle, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
@@ -63,8 +63,9 @@ export default function SellPage() {
             } else {
                 setTweetError("ツイート情報の取得に失敗しました");
             }
-        } catch (err: any) {
-            setTweetError(err.message || "ツイート情報の取得に失敗しました");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "ツイート情報の取得に失敗しました";
+            setTweetError(message);
         } finally {
             setFetchingTweet(false);
         }

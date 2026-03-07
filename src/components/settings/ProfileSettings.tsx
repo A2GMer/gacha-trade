@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { Camera, Loader2, MapPin, Phone, ShieldCheck, X, CheckCircle, Search, UserMinus, AlertTriangle, Link as LinkIcon, Unlink } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
-import { lookupPostalCode, PostalResult } from "@/lib/postal";
+import { lookupPostalCode } from "@/lib/postal";
 
 interface ProfileSettingsProps {
     onClose: () => void;
@@ -138,7 +139,7 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
             } else {
                 setShowOtpInput(true);
             }
-        } catch (e: any) {
+        } catch {
             setPhoneError("SMSの送信に失敗しました");
         }
         setPhoneLoading(false);
@@ -170,7 +171,7 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                 setPhoneVerified(true);
                 setPhoneSuccess(true);
             }
-        } catch (e: any) {
+        } catch {
             setPhoneError("認証に失敗しました");
         }
         setPhoneLoading(false);
@@ -308,7 +309,7 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                                 <div className="relative">
                                     <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center overflow-hidden border-2 border-border">
                                         {avatarUrl ? (
-                                            <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                                            <Image src={avatarUrl} alt="" width={80} height={80} unoptimized className="w-full h-full object-cover" />
                                         ) : (
                                             <span className="text-2xl font-black text-primary">
                                                 {(displayName || "?")[0]}
@@ -673,8 +674,9 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                                         alert("退会処理が完了しました。ご利用ありがとうございました。");
                                         await supabase.auth.signOut();
                                         window.location.href = "/";
-                                    } catch (err: any) {
-                                        setDeleteError(err.message);
+                                    } catch (err: unknown) {
+                                        const message = err instanceof Error ? err.message : "退会処理に失敗しました";
+                                        setDeleteError(message);
                                         setDeleting(false);
                                     }
                                 }}

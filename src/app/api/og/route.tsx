@@ -4,6 +4,18 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+interface OgCatalogItem {
+    name: string | null;
+    series: string | null;
+}
+
+interface OgItem {
+    condition: string | null;
+    is_tradeable: boolean | null;
+    images: string[] | null;
+    catalog_items: OgCatalogItem | OgCatalogItem[] | null;
+}
+
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const itemId = searchParams.get("itemId");
@@ -50,12 +62,16 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (data) {
-            const item = data as any;
-            itemName = item.catalog_items?.name || "アイテム";
-            series = item.catalog_items?.series || "";
+            const item = data as OgItem;
+            const catalogItem = Array.isArray(item.catalog_items)
+                ? item.catalog_items[0]
+                : item.catalog_items;
+
+            itemName = catalogItem?.name || "アイテム";
+            series = catalogItem?.series || "";
             condition = item.condition || "";
             imageUrl = item.images?.[0] || "";
-            isTradeable = item.is_tradeable;
+            isTradeable = Boolean(item.is_tradeable);
         }
     }
 

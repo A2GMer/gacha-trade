@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowRightLeft, Check, X, ChevronRight, Inbox } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
@@ -180,15 +181,23 @@ export default function ProposalsPage() {
                                 <div className="flex items-center gap-3">
                                     {/* Trade preview images */}
                                     <div className="flex items-center shrink-0">
-                                        <img
+                                        <Image
                                             src={proposal.proposer_item?.images?.[0] || "/placeholder.png"}
+                                            alt="Proposer item"
+                                            width={48}
+                                            height={48}
+                                            unoptimized
                                             className="w-12 h-12 rounded-xl border border-border object-cover"
                                         />
                                         <div className="bg-primary-light text-primary p-1 rounded-full -mx-1 z-10">
                                             <ArrowRightLeft className="h-3 w-3" />
                                         </div>
-                                        <img
+                                        <Image
                                             src={proposal.receiver_item?.images?.[0] || "/placeholder.png"}
+                                            alt="Receiver item"
+                                            width={48}
+                                            height={48}
+                                            unoptimized
                                             className="w-12 h-12 rounded-xl border border-border object-cover"
                                         />
                                     </div>

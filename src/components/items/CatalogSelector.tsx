@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { HelpCircle, AlertCircle, Check, Sparkles, Loader2, Plus } from "lucide-react";
+import Image from "next/image";
+import { AlertCircle, Check, Sparkles, Loader2, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase";
-import { useAuth } from "@/components/auth/AuthProvider";
 
 interface CatalogItem {
     id: string;
@@ -30,7 +30,6 @@ interface AiResult {
 
 export function CatalogSelector({ selectedItemId, onChange, error }: CatalogSelectorProps) {
     const supabase = createClient();
-    const { user } = useAuth();
     const [manufacturers, setManufacturers] = useState<string[]>([]);
     const [seriesList, setSeriesList] = useState<string[]>([]);
     const [items, setItems] = useState<CatalogItem[]>([]);
@@ -86,7 +85,7 @@ export function CatalogSelector({ selectedItemId, onChange, error }: CatalogSele
             setLoading(false);
         }
         fetchSeries();
-    }, [selectedManufacturer, supabase]);
+    }, [selectedManufacturer, supabase, onChange]);
 
     useEffect(() => {
         if (!selectedSeries) {
@@ -342,7 +341,7 @@ export function CatalogSelector({ selectedItemId, onChange, error }: CatalogSele
                                             }`}
                                     >
                                         {item.image_url ? (
-                                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                            <Image src={item.image_url} alt={item.name} fill unoptimized sizes="25vw" className="object-cover" />
                                         ) : (
                                             <div className="w-full h-full bg-background flex items-center justify-center">
                                                 <span className="text-xs text-muted text-center px-1">{item.name}</span>

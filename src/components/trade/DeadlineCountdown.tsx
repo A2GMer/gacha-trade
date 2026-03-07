@@ -55,12 +55,12 @@ function formatRemaining(ms: number): string {
 }
 
 export function DeadlineCountdown({ status, acceptedAt, addressLockedAt, shippedAt, onExpired }: DeadlineCountdownProps) {
-    const [now, setNow] = useState(Date.now());
+    const [, setTick] = useState(0);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
-        const timer = setInterval(() => setNow(Date.now()), 60 * 1000); // 1分ごとに更新
+        queueMicrotask(() => setMounted(true));
+        const timer = setInterval(() => setTick((value) => value + 1), 60 * 1000); // Update once per minute
         return () => clearInterval(timer);
     }, []);
 

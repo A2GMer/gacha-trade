@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Search as SearchIcon, SlidersHorizontal, Star, ShieldCheck, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search as SearchIcon, SlidersHorizontal, Star, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
 
@@ -53,8 +54,8 @@ export default function SearchPage() {
     }, [supabase]);
 
     // 検索実行
-    const search = useCallback(async () => {
-        setLoading(true);
+    useEffect(() => {
+        let isActive = true;
 
         let q = supabase
             .from("user_items")
@@ -83,19 +84,20 @@ export default function SearchPage() {
             q = q.ilike("catalog_items.name", `%${query.trim()}%`);
         }
 
-        const { data, error } = await q;
+        q.then(({ data, error }) => {
+            if (!isActive) return;
+            if (data && !error) {
+                setResults(data as unknown as SearchResult[]);
+            } else {
+                setResults([]);
+            }
+            setLoading(false);
+        });
 
-        if (data && !error) {
-            setResults(data as unknown as SearchResult[]);
-        } else {
-            setResults([]);
-        }
-        setLoading(false);
+        return () => {
+            isActive = false;
+        };
     }, [supabase, query, selectedCondition, selectedMfr]);
-
-    useEffect(() => {
-        search();
-    }, [search]);
 
     return (
         <div className="bg-background min-h-screen pb-24">
@@ -107,7 +109,10 @@ export default function SearchPage() {
                         <input
                             type="text"
                             value={query}
-                            onChange={(e) => setQuery(e.target.value)}
+                            onChange={(e) => {
+                                setLoading(true);
+                                setQuery(e.target.value);
+                            }}
                             placeholder="キーワードで検索..."
                             className="w-full bg-background border border-border rounded-full py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
                         />
@@ -130,7 +135,10 @@ export default function SearchPage() {
                                 {manufacturers.map((m) => (
                                     <button
                                         key={m}
-                                        onClick={() => setSelectedMfr(m)}
+                                        onClick={() => {
+                                            setLoading(true);
+                                            setSelectedMfr(m);
+                                        }}
                                         className={`badge whitespace-nowrap py-1.5 px-3 text-[11px] transition-all ${selectedMfr === m ? "bg-primary text-white" : "bg-background text-muted border border-border hover:border-primary"
                                             }`}
                                     >
@@ -145,7 +153,10 @@ export default function SearchPage() {
                                 {CONDITIONS.map((c) => (
                                     <button
                                         key={c}
-                                        onClick={() => setSelectedCondition(c)}
+                                        onClick={() => {
+                                            setLoading(true);
+                                            setSelectedCondition(c);
+                                        }}
                                         className={`badge py-1.5 px-3 text-[11px] transition-all ${selectedCondition === c ? "bg-primary text-white" : "bg-background text-muted border border-border hover:border-primary"
                                             }`}
                                     >
@@ -178,7 +189,7 @@ export default function SearchPage() {
                                     <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
                                         <div className="card group">
                                             <div className="relative aspect-square">
-                                                <img src={item.images?.[0] || "/placeholder.png"} alt={`${item.catalog_items?.name || "カプセルトイ"} - ${item.catalog_items?.series || ""} ${item.condition} | スワコレ`} loading="lazy" width={300} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                <Image src={item.images?.[0] || "/placeholder.png"} alt={`${item.catalog_items?.name || "カプセルトイ"} - ${item.catalog_items?.series || ""} ${item.condition} | スワコレ`} fill unoptimized sizes="(max-width: 640px) 50vw, 20vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                                 {item.trade_status === "TRADING" && (
                                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
                                                         <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">取引中</span>

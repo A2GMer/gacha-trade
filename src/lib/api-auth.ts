@@ -63,3 +63,46 @@ export function validateCronRequest(request: Request):
 
     return { ok: true };
 }
+
+
+export function validateSameOrigin(request: Request):
+    | { ok: true }
+    | { ok: false; status: number; error: string } {
+    const origin = request.headers.get("origin");
+    if (!origin) {
+        return { ok: false, status: 403, error: "Missing Origin header" };
+    }
+
+    let originUrl: URL;
+    try {
+        originUrl = new URL(origin);
+    } catch {
+        return { ok: false, status: 400, error: "Invalid Origin header" };
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (siteUrl) {
+        try {
+            const expectedOrigin = new URL(siteUrl).origin;
+            if (originUrl.origin !== expectedOrigin) {
+                return { ok: false, status: 403, error: "Cross-site request blocked" };
+            }
+            return { ok: true };
+        } catch {
+            return { ok: false, status: 500, error: "NEXT_PUBLIC_SITE_URL is invalid" };
+        }
+    }
+
+    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    const proto = request.headers.get("x-forwarded-proto") ?? "https";
+    if (!host) {
+        return { ok: false, status: 500, error: "Unable to validate request origin" };
+    }
+
+    const expectedOrigin = `${proto}://${host}`;
+    if (originUrl.origin !== expectedOrigin) {
+        return { ok: false, status: 403, error: "Cross-site request blocked" };
+    }
+
+    return { ok: true };
+}

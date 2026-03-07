@@ -5,8 +5,17 @@ import { createClient } from "@/lib/supabase";
 import { MessageSquare, RefreshCcw, CheckCircle } from "lucide-react";
 import { formatTime } from "@/lib/utils";
 
+interface ContactMessage {
+    id: string;
+    name: string | null;
+    email: string | null;
+    message: string | null;
+    status: string;
+    created_at: string;
+}
+
 export default function AdminContactsPage() {
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<ContactMessage[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
 
@@ -21,14 +30,30 @@ export default function AdminContactsPage() {
         if (error) {
             console.error("Failed to fetch contact messages", error);
         } else if (data) {
-            setMessages(data);
+            setMessages(data as ContactMessage[]);
         }
         setLoading(false);
     };
 
     useEffect(() => {
-        fetchMessages();
-    }, []);
+        let isActive = true;
+        supabase
+            .from("contact_messages")
+            .select(`*`)
+            .order("created_at", { ascending: false })
+            .then(({ data, error }) => {
+                if (!isActive) return;
+                if (error) {
+                    console.error("Failed to fetch contact messages", error);
+                } else {
+                    setMessages((data ?? []) as ContactMessage[]);
+                }
+                setLoading(false);
+            });
+        return () => {
+            isActive = false;
+        };
+    }, [supabase]);
 
     const markAsResolved = async (id: string) => {
         await supabase.from("contact_messages").update({ status: "RESOLVED" }).eq("id", id);

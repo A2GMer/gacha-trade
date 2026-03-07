@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendNotificationEmail } from "@/lib/mailer";
-import { createServiceRoleClient, getAuthenticatedUser } from "@/lib/api-auth";
+import { createServiceRoleClient, getAuthenticatedUser, validateSameOrigin } from "@/lib/api-auth";
 
 type SupportedEvent = "NEW_PROPOSAL" | "PROPOSAL_ACCEPTED" | "DISPUTE_OPENED" | "NEW_MESSAGE";
 
@@ -29,6 +29,11 @@ const EVENT_CONTENT: Record<SupportedEvent, { subject: string; title: string; bo
 
 export async function POST(req: NextRequest) {
     try {
+        const originCheck = validateSameOrigin(req);
+        if (!originCheck.ok) {
+            return NextResponse.json({ error: originCheck.error }, { status: originCheck.status });
+        }
+
         const user = await getAuthenticatedUser();
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

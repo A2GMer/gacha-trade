@@ -17,6 +17,7 @@ import {
     MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -48,9 +49,11 @@ export default function MyPage() {
     const [loading, setLoading] = useState(true);
     const [showSettings, setShowSettings] = useState(false);
 
-    const fetchData = async () => {
+    useEffect(() => {
         if (!user) return;
-        const [profRes, itemsRes] = await Promise.all([
+
+        let isActive = true;
+        Promise.all([
             supabase
                 .from("profiles")
                 .select("display_name, avatar_url, rating_avg, trade_count, phone_verified, role, x_username, display_name_source")
@@ -60,20 +63,22 @@ export default function MyPage() {
                 .from("user_items")
                 .select("id, is_tradeable")
                 .eq("owner_id", user.id),
-        ]);
+        ]).then(([profRes, itemsRes]) => {
+            if (!isActive) return;
 
-        if (profRes.data) setProfile(profRes.data);
-        if (itemsRes.data) {
-            setStats({
-                total: itemsRes.data.length,
-                tradeable: itemsRes.data.filter((i) => i.is_tradeable).length,
-            });
-        }
-        setLoading(false);
-    };
+            if (profRes.data) setProfile(profRes.data);
+            if (itemsRes.data) {
+                setStats({
+                    total: itemsRes.data.length,
+                    tradeable: itemsRes.data.filter((i) => i.is_tradeable).length,
+                });
+            }
+            setLoading(false);
+        });
 
-    useEffect(() => {
-        fetchData();
+        return () => {
+            isActive = false;
+        };
     }, [user, supabase]);
 
     async function handleSignOut() {
@@ -81,7 +86,7 @@ export default function MyPage() {
         router.push("/");
     }
 
-    if (authLoading || loading) {
+    if (authLoading) {
         return (
             <div className="bg-background min-h-screen flex items-center justify-center">
                 <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -99,6 +104,14 @@ export default function MyPage() {
                         ログインする
                     </Link>
                 </div>
+            </div>
+        );
+    }
+
+    if (loading) {
+        return (
+            <div className="bg-background min-h-screen flex items-center justify-center">
+                <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
             </div>
         );
     }
@@ -129,7 +142,7 @@ export default function MyPage() {
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-full border border-border bg-background flex items-center justify-center text-xl font-bold shrink-0 overflow-hidden">
                             {profile?.avatar_url ? (
-                                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                                <Image src={profile.avatar_url} alt="" width={56} height={56} unoptimized className="w-full h-full object-cover" />
                             ) : (
                                 (profile?.display_name || "?")[0]
                             )}

@@ -5,8 +5,18 @@ import { createClient } from "@/lib/supabase";
 import { Users, RefreshCcw, ShieldAlert, Star } from "lucide-react";
 import { formatTime } from "@/lib/utils";
 
+interface AdminUser {
+    id: string;
+    display_name: string | null;
+    email: string | null;
+    rating_avg: number | null;
+    rating_count: number | null;
+    created_at: string;
+    role: string;
+}
+
 export default function AdminUsersPage() {
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
 
@@ -18,13 +28,26 @@ export default function AdminUsersPage() {
             .order("created_at", { ascending: false })
             .limit(100); // 簡略化のため最新100件
 
-        if (data) setUsers(data);
+        if (data) setUsers(data as AdminUser[]);
         setLoading(false);
     };
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        let isActive = true;
+        supabase
+            .from("profiles")
+            .select(`*`)
+            .order("created_at", { ascending: false })
+            .limit(100)
+            .then(({ data }) => {
+                if (!isActive) return;
+                setUsers((data ?? []) as AdminUser[]);
+                setLoading(false);
+            });
+        return () => {
+            isActive = false;
+        };
+    }, [supabase]);
 
     const toggleAdminRole = async (userId: string, currentRole: string) => {
         if (!confirm(`本当にこのユーザーの権限を「${currentRole === 'admin' ? '一般' : '管理者'}」に変更しますか？`)) return;

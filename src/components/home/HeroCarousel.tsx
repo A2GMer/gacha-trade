@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import type { EmblaCarouselType } from "embla-carousel";
 import Link from "next/link";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -37,11 +38,11 @@ export function HeroCarousel() {
         [emblaApi]
     );
 
-    const onInit = useCallback((emblaApi: any) => {
+    const onInit = useCallback((emblaApi: EmblaCarouselType) => {
         setScrollSnaps(emblaApi.scrollSnapList());
     }, []);
 
-    const onSelect = useCallback((emblaApi: any) => {
+    const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
         setSelectedIndex(emblaApi.selectedScrollSnap());
     }, []);
 

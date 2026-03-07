@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { Star, ShieldCheck, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 import { getProfileDisplayName } from "@/lib/profile";
 
@@ -92,7 +93,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-full border border-border bg-background flex items-center justify-center text-xl font-bold overflow-hidden">
                             {profile.avatar_url ? (
-                                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                                <Image src={profile.avatar_url} alt="" width={56} height={56} unoptimized className="w-full h-full object-cover" />
                             ) : (
                                 (profile.display_name || "?")[0]
                             )}
@@ -146,7 +147,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         {filteredItems.map((item, i) => (
                             <Link key={item.id} href={`/item/${item.id}`} className={`animate-fade-in-up delay-${i + 1}`}>
                                 <div className="aspect-square card overflow-hidden relative group">
-                                    <img src={item.images?.[0] || "/placeholder.png"} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    <Image src={item.images?.[0] || "/placeholder.png"} alt="" fill unoptimized sizes="(max-width: 640px) 33vw, 20vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                     {item.trade_status === "TRADING" && (
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
                                             <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">取引中</span>

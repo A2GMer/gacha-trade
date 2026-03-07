@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Plus, Trash2, Search, ChevronLeft } from "lucide-react";
 
 interface CatalogItem {
@@ -43,8 +44,24 @@ export default function WantsPage() {
     }, [user, supabase]);
 
     useEffect(() => {
-        fetchWants();
-    }, [fetchWants]);
+        if (!user) return;
+
+        let isActive = true;
+        supabase
+            .from("wants")
+            .select("id, catalog_item_id, catalog_items (*)")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .then(({ data }) => {
+                if (!isActive) return;
+                if (data) setWants(data as unknown as WantItem[]);
+                setLoading(false);
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, [user, supabase]);
 
     async function searchCatalog(query: string) {
         setSearchQuery(query);
@@ -149,9 +166,9 @@ export default function WantsPage() {
                                                     : "hover:bg-primary-light"
                                                 }`}
                                         >
-                                            <div className="w-10 h-10 rounded-lg bg-background border border-border overflow-hidden shrink-0">
+                                            <div className="w-10 h-10 rounded-lg bg-background border border-border overflow-hidden shrink-0 relative">
                                                 {item.image_url && (
-                                                    <img src={item.image_url} alt="" className="w-full h-full object-cover" />
+                                                    <Image src={item.image_url} alt="" fill unoptimized sizes="40px" className="object-cover" />
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -193,12 +210,15 @@ export default function WantsPage() {
                                 key={w.id}
                                 className={`card p-3 flex items-center gap-3 animate-fade-in-up delay-${(i % 5) + 1}`}
                             >
-                                <div className="w-14 h-14 rounded-xl overflow-hidden border border-border shrink-0">
+                                <div className="w-14 h-14 rounded-xl overflow-hidden border border-border shrink-0 relative">
                                     {w.catalog_items?.image_url && (
-                                        <img
+                                        <Image
                                             src={w.catalog_items.image_url}
                                             alt=""
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            unoptimized
+                                            sizes="56px"
+                                            className="object-cover"
                                         />
                                     )}
                                 </div>

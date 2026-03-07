@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { Layers, ChevronLeft, Eye, EyeOff, ArrowRightLeft, Camera, Trash2, Edit3, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -160,10 +161,13 @@ export default function CollectionPage() {
                             >
                                 <Link href={`/item/${item.id}`} className="shrink-0">
                                     <div className="w-16 h-16 rounded-xl overflow-hidden border border-border relative">
-                                        <img
+                                        <Image
                                             src={item.images?.[0] || "/placeholder.png"}
                                             alt=""
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            unoptimized
+                                            sizes="64px"
+                                            className="object-cover"
                                         />
                                         {isInTrade(item) && (
                                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">

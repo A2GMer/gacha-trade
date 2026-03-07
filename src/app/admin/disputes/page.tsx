@@ -50,8 +50,26 @@ export default function AdminDisputesPage() {
     };
 
     useEffect(() => {
-        fetchDisputes();
-    }, []);
+        let isActive = true;
+
+        supabase
+            .from("disputes")
+            .select(`
+                *,
+                trades (id, status, proposer_id, receiver_id, proposer_payment_intent_id, receiver_payment_intent_id),
+                profiles:reporter_id (display_name, email)
+            `)
+            .order("created_at", { ascending: false })
+            .then(({ data }) => {
+                if (!isActive) return;
+                if (data) setDisputes(data);
+                setLoading(false);
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, [supabase]);
 
     const handleStripeAction = async (action: 'capture' | 'cancel', tradeData: DisputeTrade, targetUserId: string) => {
         if (!confirm(`Run Stripe action: ${action}?`)) return;

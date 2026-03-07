@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { getProfileDisplayName, DisplayNameProfile } from "@/lib/profile";
 import {
     ArrowRightLeft,
@@ -134,19 +135,25 @@ export default function DashboardPage() {
                 className="card p-4 flex items-center gap-3 hover:shadow-md transition-shadow animate-fade-in-up"
             >
                 <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-border">
-                        <img
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-border relative">
+                        <Image
                             src={myItem?.images?.[0] || "/placeholder.png"}
                             alt=""
-                            className="w-full h-full object-cover"
+                            fill
+                            unoptimized
+                            sizes="48px"
+                            className="object-cover"
                         />
                     </div>
                     <ArrowRightLeft className="h-3.5 w-3.5 text-muted shrink-0" />
-                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-border">
-                        <img
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-border relative">
+                        <Image
                             src={theirItem?.images?.[0] || "/placeholder.png"}
                             alt=""
-                            className="w-full h-full object-cover"
+                            fill
+                            unoptimized
+                            sizes="48px"
+                            className="object-cover"
                         />
                     </div>
                 </div>

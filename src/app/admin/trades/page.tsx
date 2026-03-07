@@ -6,8 +6,22 @@ import { ArrowRightLeft, RefreshCcw, ExternalLink } from "lucide-react";
 import { formatTime } from "@/lib/utils";
 import Link from "next/link";
 
+interface TradeUserRef {
+    display_name: string | null;
+}
+
+interface AdminTrade {
+    id: string;
+    updated_at: string;
+    status: string;
+    proposer_shipped: boolean;
+    receiver_shipped: boolean;
+    proposer: TradeUserRef | null;
+    receiver: TradeUserRef | null;
+}
+
 export default function AdminTradesPage() {
-    const [trades, setTrades] = useState<any[]>([]);
+    const [trades, setTrades] = useState<AdminTrade[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
 
@@ -23,13 +37,30 @@ export default function AdminTradesPage() {
             .order("updated_at", { ascending: false })
             .limit(100);
 
-        if (data) setTrades(data);
+        if (data) setTrades(data as AdminTrade[]);
         setLoading(false);
     };
 
     useEffect(() => {
-        fetchTrades();
-    }, []);
+        let isActive = true;
+        supabase
+            .from("trades")
+            .select(`
+                *,
+                proposer:proposer_id (display_name),
+                receiver:receiver_id (display_name)
+            `)
+            .order("updated_at", { ascending: false })
+            .limit(100)
+            .then(({ data }) => {
+                if (!isActive) return;
+                setTrades((data ?? []) as AdminTrade[]);
+                setLoading(false);
+            });
+        return () => {
+            isActive = false;
+        };
+    }, [supabase]);
 
     const getStatusColor = (status: string) => {
         switch (status) {

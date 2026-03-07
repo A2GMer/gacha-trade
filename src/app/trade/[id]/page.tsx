@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
-import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, Star, AlertTriangle, PackageCheck, Camera, X, Hash, ImagePlus } from "lucide-react";
+import { ChevronLeft, Info, Send, Truck, ArrowRightLeft, CheckCircle2, MapPin, Star, AlertTriangle, PackageCheck, X, Hash, ImagePlus } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { ShippingGuide } from "@/components/trade/ShippingGuide";
 import { ReviewModal } from "@/components/trade/ReviewModal";
 import { DeadlineCountdown } from "@/components/trade/DeadlineCountdown";
 import { DepositModal } from "@/components/trade/DepositModal";
-import { lookupPostalCode } from "@/lib/postal";
 import { shareTradeCompleteOnX } from "@/lib/share";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase";
@@ -228,7 +228,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             .on(
                 "postgres_changes",
                 { event: "INSERT", schema: "public", table: "trade_messages", filter: `trade_id=eq.${id}` },
-                (payload) => {
+                () => {
                     setMessages((prev) => [...prev, payload.new as Message]);
                 }
             )
@@ -240,7 +240,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
             .on(
                 "postgres_changes",
                 { event: "*", schema: "public", table: "user_addresses" },
-                (payload) => {
+                () => {
                     // Refetch trade to update addresses properly through RLS policy evaluation
                     fetchTrade();
                 }
@@ -298,7 +298,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         const fileExt = file.name.split('.').pop();
         const fileName = `${id}/${user.id}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
 
-        const { data, error } = await supabase.storage
+        const { error } = await supabase.storage
             .from("trade_evidences")
             .upload(fileName, file);
 
@@ -600,7 +600,6 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     {ALL_STEPS.map((step, i) => {
                         const isCompleted = i < currentStepIndex;
                         const isCurrent = i === currentStepIndex;
-                        const isFuture = i > currentStepIndex;
 
                         return (
                             <div key={step.id} className="flex items-center relative flex-1 first:flex-initial last:flex-initial">
@@ -657,7 +656,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     </h2>
                     <div className="flex items-center gap-3">
                         <div className="flex-1 text-center">
-                            <img src={myItem?.images?.[0] || "/placeholder.png"} className="w-16 h-16 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm" />
+                            <Image src={myItem?.images?.[0] || "/placeholder.png"} alt="Your item" width={64} height={64} unoptimized className="w-16 h-16 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm" />
                             <p className="badge bg-primary-light text-primary text-[8px] mx-auto">あなた</p>
                             <p className="text-[10px] font-bold mt-0.5 truncate">{myItem?.catalog_items?.name}</p>
                         </div>
@@ -665,7 +664,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                             <ArrowRightLeft className="h-4 w-4" />
                         </div>
                         <div className="flex-1 text-center">
-                            <img src={partnerItem?.images?.[0] || "/placeholder.png"} className="w-16 h-16 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm" />
+                            <Image src={partnerItem?.images?.[0] || "/placeholder.png"} alt="Partner item" width={64} height={64} unoptimized className="w-16 h-16 mx-auto rounded-lg border border-border object-cover mb-1 shadow-sm" />
                             <p className="badge bg-secondary-light text-secondary text-[8px] mx-auto">相手</p>
                             <p className="text-[10px] font-bold mt-0.5 truncate">{partnerItem?.catalog_items?.name}</p>
                         </div>
@@ -859,9 +858,12 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                                         <div className="bg-background rounded-xl p-3">
                                             <p className="text-[10px] text-muted font-bold mb-2">受け取るべきアイテム</p>
                                             <div className="flex items-center gap-3">
-                                                <img
+                                                <Image
                                                     src={partnerItem?.images?.[0] || "/placeholder.png"}
-                                                    alt=""
+                                                    alt="Expected item"
+                                                    width={56}
+                                                    height={56}
+                                                    unoptimized
                                                     className="w-14 h-14 rounded-xl border border-border object-cover"
                                                 />
                                                 <div>
@@ -1041,7 +1043,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                                 {m.image_url ? (
                                     <div className="space-y-2">
                                         <a href={m.image_url} target="_blank" rel="noopener noreferrer">
-                                            <img src={m.image_url} alt="Evidence" className="rounded-lg max-h-48 object-cover w-full cursor-zoom-in border border-white/10" />
+                                            <Image src={m.image_url} alt="Evidence" width={720} height={540} unoptimized className="rounded-lg max-h-48 h-auto object-cover w-full cursor-zoom-in border border-white/10" />
                                         </a>
                                         {m.content !== "【画像を送信しました】" && <p>{m.content}</p>}
                                     </div>
