@@ -1,65 +1,121 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { createClient } from "@supabase/supabase-js";
+import {
+    createServiceRoleClient,
+    getAuthenticatedUser,
+    isAdminUser,
+} from "@/lib/api-auth";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+async function ensureAdminOrCron(request: NextRequest) {
+    const cronSecret = process.env.CRON_SECRET;
+    const authHeader = request.headers.get("authorization");
 
-/**
- * 未発送者のデポジットをキャプチャ（実課金）
- * POST /api/deposit/capture
- * Body: { tradeId: string, violatorId: string }
- */
+    if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+        return { ok: true as const };
+    }
+
+    const user = await getAuthenticatedUser();
+    if (!user) {
+        return {
+            ok: false as const,
+            response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+        };
+    }
+
+    const isAdmin = await isAdminUser(user.id);
+    if (!isAdmin) {
+        return {
+            ok: false as const,
+            response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+        };
+    }
+
+    return { ok: true as const };
+}
+
 export async function POST(request: NextRequest) {
     try {
-        const stripe = getStripe();
+        const auth = await ensureAdminOrCron(request);
+        if (!auth.ok) {
+            return auth.response;
+        }
+
         const { tradeId, violatorId } = await request.json();
         if (!tradeId || !violatorId) {
             return NextResponse.json({ error: "tradeId and violatorId are required" }, { status: 400 });
         }
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-        const { data: trade } = await supabase
+        const supabaseAdmin = createServiceRoleClient();
+        const { data: trade, error: tradeError } = await supabaseAdmin
             .from("trades")
             .select("proposer_id, receiver_id, proposer_payment_intent_id, receiver_payment_intent_id")
             .eq("id", tradeId)
-            .single();
+            .maybeSingle();
+
+        if (tradeError) {
+            console.error("Failed to load trade for capture:", tradeError);
+            return NextResponse.json({ error: "Failed to load trade" }, { status: 500 });
+        }
 
         if (!trade) {
             return NextResponse.json({ error: "Trade not found" }, { status: 404 });
         }
 
-        const piId = trade.proposer_id === violatorId
-            ? trade.proposer_payment_intent_id
-            : trade.receiver_payment_intent_id;
+        if (violatorId !== trade.proposer_id && violatorId !== trade.receiver_id) {
+            return NextResponse.json({ error: "violatorId is not part of this trade" }, { status: 400 });
+        }
 
-        const otherPiId = trade.proposer_id === violatorId
-            ? trade.receiver_payment_intent_id
-            : trade.proposer_payment_intent_id;
+        const piId =
+            trade.proposer_id === violatorId
+                ? trade.proposer_payment_intent_id
+                : trade.receiver_payment_intent_id;
 
+        const otherPiId =
+            trade.proposer_id === violatorId
+                ? trade.receiver_payment_intent_id
+                : trade.proposer_payment_intent_id;
+
+        const stripe = getStripe();
         const results: { action: string; id: string; status: string }[] = [];
 
         if (piId) {
             try {
                 const captured = await stripe.paymentIntents.capture(piId);
                 results.push({ action: "capture", id: piId, status: captured.status });
-            } catch (e: any) {
-                results.push({ action: "capture", id: piId, status: `error: ${e.message}` });
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : "Unknown error";
+                results.push({ action: "capture", id: piId, status: `error: ${message}` });
             }
         }
 
         if (otherPiId) {
             try {
-                const cancelled = await stripe.paymentIntents.cancel(otherPiId);
+                const cancelled = await stripe.paymentIntents.cancel(otherPiId, {
+                    cancellation_reason: "requested_by_customer",
+                });
                 results.push({ action: "release", id: otherPiId, status: cancelled.status });
-            } catch (e: any) {
-                results.push({ action: "release", id: otherPiId, status: `error: ${e.message}` });
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : "Unknown error";
+                results.push({ action: "release", id: otherPiId, status: `error: ${message}` });
             }
         }
 
+        const { error: clearError } = await supabaseAdmin
+            .from("trades")
+            .update({
+                proposer_payment_intent_id: null,
+                receiver_payment_intent_id: null,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", tradeId);
+
+        if (clearError) {
+            console.error("Failed to clear payment intent ids after capture:", clearError);
+        }
         return NextResponse.json({ success: true, results });
     } catch (error) {
         console.error("Deposit capture error:", error);
         return NextResponse.json({ error: "Failed to capture deposit" }, { status: 500 });
     }
 }
+

@@ -378,7 +378,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         if (!latestTrade) return;
 
         const isProposer = user.id === trade.proposer_id;
-        const updatePayload: any = {};
+        const updatePayload: Record<string, unknown> = {};
 
         if (isProposer) {
             updatePayload.proposer_payment_intent_id = paymentIntentId;
@@ -423,7 +423,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         }
 
         const isProposer = user.id === trade.proposer_id;
-        const updatePayload: any = isProposer
+        const updatePayload: Record<string, unknown> = isProposer
             ? { proposer_shipped: true, proposer_tracking_number: cleanedTrackingNumber }
             : { receiver_shipped: true, receiver_tracking_number: cleanedTrackingNumber };
 
@@ -441,7 +441,7 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
     const markAsReceived = async () => {
         if (!trade || !user) return;
         const isProposer = user.id === trade.proposer_id;
-        const updatePayload: any = isProposer ? { proposer_received: true } : { receiver_received: true };
+        const updatePayload: Record<string, unknown> = isProposer ? { proposer_received: true } : { receiver_received: true };
 
         const partnerReceived = isProposer ? trade.receiver_received : trade.proposer_received;
 
@@ -449,35 +449,19 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
         if (partnerReceived) {
             updatePayload.status = "COMPLETED";
 
-            // Stripe デポジット（オーソリ）のキャンセル（返金）処理を呼び出す
             try {
-                // 提案者のデポジットをキャンセル
-                if (trade.proposer_payment_intent_id) {
-                    await fetch("/api/stripe/cancel", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            paymentIntentId: trade.proposer_payment_intent_id,
-                            tradeId: trade.id,
-                            reason: "requested_by_customer" // 正常完了による合意解除
-                        })
-                    }).catch(err => console.error("Failed to cancel proposer deposit:", err));
-                }
+                const releaseRes = await fetch("/api/deposit/release", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tradeId: trade.id }),
+                });
 
-                // 受信者のデポジットをキャンセル
-                if (trade.receiver_payment_intent_id) {
-                    await fetch("/api/stripe/cancel", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            paymentIntentId: trade.receiver_payment_intent_id,
-                            tradeId: trade.id,
-                            reason: "requested_by_customer"
-                        })
-                    }).catch(err => console.error("Failed to cancel receiver deposit:", err));
+                if (!releaseRes.ok) {
+                    const releaseBody = await releaseRes.json().catch(() => ({}));
+                    console.error("Failed to release deposits:", releaseBody);
                 }
-            } catch (err) {
-                console.error("Error during deposit cancellation:", err);
+            } catch (error) {
+                console.error("Error during deposit release:", error);
             }
         }
 
@@ -1126,7 +1110,6 @@ export default function TradeRoom({ params }: { params: Promise<{ id: string }> 
                     {/* The modal has a fixed overlay, but placing it here ensures it mounts */}
                     <DepositModal
                         tradeId={trade.id}
-                        userId={user.id}
                         onSuccess={handleDepositSuccess}
                         onCancel={() => {
                             setShowDepositModal(false);

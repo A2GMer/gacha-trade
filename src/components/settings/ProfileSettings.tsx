@@ -157,7 +157,6 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                 : `+81${cleanPhone.replace(/^0/, "")}`;
 
         try {
-            console.log("verifyOtp payload:", { phone: formatted, token: otpCode, type: "phone_change" });
             const { error } = await supabase.auth.verifyOtp({
                 phone: formatted,
                 token: otpCode,
@@ -173,20 +172,6 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
             }
         } catch (e: any) {
             setPhoneError("認証に失敗しました");
-        }
-        setPhoneLoading(false);
-    };
-
-    const bypassPhoneVerification = async () => {
-        if (!user) return;
-        setPhoneLoading(true);
-        setPhoneError("");
-        try {
-            await supabase.from("profiles").update({ phone_verified: true }).eq("id", user.id);
-            setPhoneVerified(true);
-            setPhoneSuccess(true);
-        } catch (e: any) {
-            setPhoneError("バイパスに失敗しました");
         }
         setPhoneLoading(false);
     };
@@ -449,14 +434,6 @@ export function ProfileSettings({ onClose, onSaved }: ProfileSettingsProps) {
                                     )}
 
                                     {phoneError && <p className="text-xs text-danger font-bold">{phoneError}</p>}
-
-                                    <button
-                                        onClick={bypassPhoneVerification}
-                                        disabled={phoneLoading}
-                                        className="btn bg-gray-200 text-gray-700 w-full py-2 text-xs font-bold mt-4"
-                                    >
-                                        【開発者用】SMS認証を強制スキップして完了済みにする
-                                    </button>
                                 </>
                             )}
                         </div>

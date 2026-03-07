@@ -1,75 +1,106 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { sendNotificationEmail } from "@/lib/mailer";
+import { createServiceRoleClient, getAuthenticatedUser } from "@/lib/api-auth";
 
-// Create a Supabase admin client with the service role key to bypass RLS and read auth/user data
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder"
-);
+type SupportedEvent = "NEW_PROPOSAL" | "PROPOSAL_ACCEPTED" | "DISPUTE_OPENED" | "NEW_MESSAGE";
+
+const EVENT_CONTENT: Record<SupportedEvent, { subject: string; title: string; body: string }> = {
+    NEW_PROPOSAL: {
+        subject: "[Gacha Trade] New proposal received",
+        title: "New trade proposal",
+        body: "You received a new trade proposal. Open the trade room to review the details.",
+    },
+    PROPOSAL_ACCEPTED: {
+        subject: "[Gacha Trade] Proposal accepted",
+        title: "Your proposal was accepted",
+        body: "Your trade proposal was accepted. Please proceed with the next steps.",
+    },
+    DISPUTE_OPENED: {
+        subject: "[Gacha Trade] Dispute opened",
+        title: "A dispute was opened",
+        body: "A dispute was opened for this trade. Please check the trade room and respond.",
+    },
+    NEW_MESSAGE: {
+        subject: "[Gacha Trade] New message",
+        title: "You have a new message",
+        body: "There is a new message in your trade room.",
+    },
+};
 
 export async function POST(req: NextRequest) {
     try {
-        const { targetUserId, eventType, tradeId } = await req.json();
-
-        if (!targetUserId || !eventType) {
-            return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
+        const user = await getAuthenticatedUser();
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // 1. Fetch the target user's email using Admin API
-        const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+        const { targetUserId, eventType, tradeId } = await req.json();
+        if (!targetUserId || !eventType || !tradeId) {
+            return NextResponse.json(
+                { error: "targetUserId, eventType and tradeId are required" },
+                { status: 400 }
+            );
+        }
 
-        if (userError || !user || !user.email) {
-            // We ignore errors if user has no email or is not found (perhaps deleted)
+        if (!(eventType in EVENT_CONTENT)) {
+            return NextResponse.json({ error: "Unknown eventType" }, { status: 400 });
+        }
+
+        const supabaseAdmin = createServiceRoleClient();
+        const { data: trade, error: tradeError } = await supabaseAdmin
+            .from("trades")
+            .select("id, proposer_id, receiver_id, status")
+            .eq("id", tradeId)
+            .maybeSingle();
+
+        if (tradeError) {
+            console.error("Failed to load trade for notification:", tradeError);
+            return NextResponse.json({ error: "Failed to validate trade" }, { status: 500 });
+        }
+
+        if (!trade) {
+            return NextResponse.json({ error: "Trade not found" }, { status: 404 });
+        }
+
+        const isParticipant = trade.proposer_id === user.id || trade.receiver_id === user.id;
+        if (!isParticipant) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const partnerId = trade.proposer_id === user.id ? trade.receiver_id : trade.proposer_id;
+        if (targetUserId !== partnerId) {
+            return NextResponse.json({ error: "Invalid targetUserId" }, { status: 400 });
+        }
+
+        const typedEvent = eventType as SupportedEvent;
+        if (typedEvent === "NEW_PROPOSAL" && trade.proposer_id !== user.id) {
+            return NextResponse.json({ error: "Only proposer can send this event" }, { status: 403 });
+        }
+        if (typedEvent === "PROPOSAL_ACCEPTED" && trade.receiver_id !== user.id) {
+            return NextResponse.json({ error: "Only receiver can send this event" }, { status: 403 });
+        }
+
+        const {
+            data: { user: targetUser },
+            error: userError,
+        } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+
+        if (userError || !targetUser || !targetUser.email) {
             console.error(`Could not fetch email for user ${targetUserId}:`, userError?.message);
             return NextResponse.json({ success: false, reason: "User or email not found" });
         }
 
-        const email = user.email;
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+        const tradeUrl = `${baseUrl}/trade/${tradeId}`;
+        const content = EVENT_CONTENT[typedEvent];
 
-        // 2. Build the email content based on eventType
-        let subject = "";
-        let title = "";
-        let contentHtml = "";
-        const tradeUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/trade/${tradeId || ''}`;
-        let actionLabel = "取引画面を見る";
-
-        switch (eventType) {
-            case "NEW_PROPOSAL":
-                subject = "【スワコレ】新しいトレードの提案が届きました！";
-                title = "新しい提案のお知らせ";
-                contentHtml = `<p>あなたの出品アイテムに対して、新しい交換の提案が届いています。</p>
-                               <p>内容を確認し、承諾するかお断りするかを選択してください。</p>`;
-                break;
-            case "PROPOSAL_ACCEPTED":
-                subject = "【スワコレ】提案が承諾されました！";
-                title = "取引成立（デポジット待機）";
-                contentHtml = `<p>あなたの提案が相手に承諾されました。</p>
-                               <p>取引を安全に開始するため、取引画面からデポジット（預かり金）の手続きに進んでください。</p>`;
-                break;
-            case "DISPUTE_OPENED":
-                subject = "【スワコレ】取引について問題が報告されました";
-                title = "トラブル報告のお知らせ";
-                contentHtml = `<p>現在進行中の取引について、相手から問題の報告がありました。</p>
-                               <p>取引画面のメッセージ機能を使って、相手と状況を確認し合ってください。</p>`;
-                break;
-            case "NEW_MESSAGE":
-                subject = "【スワコレ】取引メッセージが届きました";
-                title = "新着メッセージ";
-                contentHtml = `<p>取引相手から新しいメッセージが届いています。</p>`;
-                break;
-            default:
-                return NextResponse.json({ error: "Unknown eventType" }, { status: 400 });
-        }
-
-        // 3. Send email via internal mailer utility (Resend)
         const sendResult = await sendNotificationEmail({
-            to: email,
-            subject,
-            textPreview: title,
-            title,
-            contentHtml,
-            actionLabel,
+            to: targetUser.email,
+            subject: content.subject,
+            textPreview: content.title,
+            title: content.title,
+            contentHtml: `<p>${content.body}</p>`,
+            actionLabel: "Open trade",
             actionUrl: tradeUrl,
         });
 
@@ -78,8 +109,9 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
         console.error("Internal Notification Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

@@ -1,84 +1,100 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { NextRequest, NextResponse } from "next/server";
+import { createServiceRoleClient, validateCronRequest } from "@/lib/api-auth";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
-/**
- * 発送期限超過チェック Cron
- * GET /api/cron/check-shipment-deadline
- * Vercel Cron: 毎日1回実行
- * { "crons": [{ "path": "/api/cron/check-shipment-deadline", "schedule": "0 9 * * *" }] }
- */
-export async function GET(request: Request) {
-    const authHeader = request.headers.get("authorization");
-    const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(request: NextRequest) {
+    const cronAuth = validateCronRequest(request);
+    if (!cronAuth.ok) {
+        return NextResponse.json({ error: cronAuth.error }, { status: cronAuth.status });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    try {
+        const supabaseAdmin = createServiceRoleClient();
 
-    // 発送期限超過の取引を検索
-    const { data: overdueTrades } = await supabase
-        .from("trades")
-        .select("id, proposer_id, receiver_id, proposer_shipped, receiver_shipped, shipment_deadline")
-        .in("status", ["ACCEPTED", "SHIPPED"])
-        .lt("shipment_deadline", new Date().toISOString())
-        .not("shipment_deadline", "is", null);
+        const { data: overdueTrades, error: overdueError } = await supabaseAdmin
+            .from("trades")
+            .select(
+                "id, proposer_id, receiver_id, proposer_shipped, receiver_shipped, shipment_deadline"
+            )
+            .in("status", ["ACCEPTED", "SHIPPED"])
+            .lt("shipment_deadline", new Date().toISOString())
+            .not("shipment_deadline", "is", null);
 
-    if (!overdueTrades || overdueTrades.length === 0) {
-        return NextResponse.json({ checked: 0, actions: [] });
-    }
+        if (overdueError) {
+            console.error("Failed to fetch overdue trades:", overdueError);
+            return NextResponse.json({ error: "Failed to fetch overdue trades" }, { status: 500 });
+        }
 
-    const actions: { tradeId: string; action: string; violatorId: string }[] = [];
+        if (!overdueTrades || overdueTrades.length === 0) {
+            return NextResponse.json({ checked: 0, actions: [] });
+        }
 
-    for (const trade of overdueTrades) {
-        const violators: string[] = [];
+        const actions: { tradeId: string; action: string; violatorId: string }[] = [];
+        const authHeader = request.headers.get("authorization") || "";
 
-        if (!trade.proposer_shipped) violators.push(trade.proposer_id);
-        if (!trade.receiver_shipped) violators.push(trade.receiver_id);
+        for (const trade of overdueTrades) {
+            const violators: string[] = [];
 
-        if (violators.length === 0) continue;
+            if (!trade.proposer_shipped) {
+                violators.push(trade.proposer_id);
+            }
+            if (!trade.receiver_shipped) {
+                violators.push(trade.receiver_id);
+            }
 
-        for (const violatorId of violators) {
-            // デポジットキャプチャ
-            try {
-                await fetch(new URL("/api/deposit/capture", request.url).toString(), {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${cronSecret}`,
-                    },
-                    body: JSON.stringify({ tradeId: trade.id, violatorId }),
+            if (violators.length === 0) {
+                continue;
+            }
+
+            for (const violatorId of violators) {
+                try {
+                    const captureRes = await fetch(
+                        new URL("/api/deposit/capture", request.url).toString(),
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: authHeader,
+                            },
+                            body: JSON.stringify({ tradeId: trade.id, violatorId }),
+                        }
+                    );
+
+                    if (!captureRes.ok) {
+                        actions.push({ tradeId: trade.id, action: "capture_failed", violatorId });
+                    } else {
+                        actions.push({ tradeId: trade.id, action: "captured", violatorId });
+                    }
+                } catch (error) {
+                    console.error("Failed to call /api/deposit/capture:", error);
+                    actions.push({ tradeId: trade.id, action: "capture_failed", violatorId });
+                }
+            }
+
+            await supabaseAdmin
+                .from("trades")
+                .update({ status: "DISPUTE", updated_at: new Date().toISOString() })
+                .eq("id", trade.id);
+
+            for (const violatorId of violators) {
+                const nonViolatorId =
+                    violatorId === trade.proposer_id ? trade.receiver_id : trade.proposer_id;
+
+                await supabaseAdmin.from("disputes").insert({
+                    trade_id: trade.id,
+                    reporter_id: nonViolatorId,
+                    reason: `Shipment deadline passed (${trade.shipment_deadline})`,
+                    status: "OPEN",
                 });
-                actions.push({ tradeId: trade.id, action: "captured", violatorId });
-            } catch (e) {
-                actions.push({ tradeId: trade.id, action: "error", violatorId });
             }
         }
 
-        // 紛争ステータスへ変更
-        await supabase
-            .from("trades")
-            .update({ status: "DISPUTE", updated_at: new Date().toISOString() })
-            .eq("id", trade.id);
-
-        // 紛争レコード作成
-        for (const violatorId of violators) {
-            const nonViolatorId = violatorId === trade.proposer_id ? trade.receiver_id : trade.proposer_id;
-            await supabase.from("disputes").insert({
-                trade_id: trade.id,
-                reporter_id: nonViolatorId,
-                reason: `発送期限超過（期限: ${trade.shipment_deadline}）`,
-                status: "OPEN",
-            });
-        }
+        return NextResponse.json({
+            checked: overdueTrades.length,
+            actions,
+            timestamp: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error("Cron check-shipment-deadline error:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
-
-    return NextResponse.json({
-        checked: overdueTrades.length,
-        actions,
-        timestamp: new Date().toISOString(),
-    });
 }

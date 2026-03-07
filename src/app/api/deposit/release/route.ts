@@ -1,45 +1,89 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { createClient } from "@supabase/supabase-js";
+import {
+    createServiceRoleClient,
+    getAuthenticatedUser,
+    isAdminUser,
+} from "@/lib/api-auth";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
-/**
- * 取引完了時にデポジット（Auth Hold）を解放（課金なし）
- * POST /api/deposit/release
- * Body: { tradeId: string }
- */
 export async function POST(request: NextRequest) {
     try {
-        const stripe = getStripe();
         const { tradeId } = await request.json();
         if (!tradeId) {
             return NextResponse.json({ error: "tradeId is required" }, { status: 400 });
         }
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-        const { data: trade } = await supabase
+        const cronSecret = process.env.CRON_SECRET;
+        const authHeader = request.headers.get("authorization");
+        const hasCronAuth = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
+
+        const user = hasCronAuth ? null : await getAuthenticatedUser();
+        if (!hasCronAuth && !user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const supabaseAdmin = createServiceRoleClient();
+        const { data: trade, error: tradeError } = await supabaseAdmin
             .from("trades")
-            .select("proposer_payment_intent_id, receiver_payment_intent_id")
+            .select(
+                "proposer_id, receiver_id, proposer_payment_intent_id, receiver_payment_intent_id"
+            )
             .eq("id", tradeId)
-            .single();
+            .maybeSingle();
+
+        if (tradeError) {
+            console.error("Failed to load trade for release:", tradeError);
+            return NextResponse.json({ error: "Failed to load trade" }, { status: 500 });
+        }
 
         if (!trade) {
             return NextResponse.json({ error: "Trade not found" }, { status: 404 });
         }
 
-        const results: { id: string; status: string }[] = [];
-
-        for (const piId of [trade.proposer_payment_intent_id, trade.receiver_payment_intent_id]) {
-            if (piId) {
-                try {
-                    const pi = await stripe.paymentIntents.cancel(piId);
-                    results.push({ id: piId, status: pi.status });
-                } catch (e: any) {
-                    results.push({ id: piId, status: `error: ${e.message}` });
+        if (!hasCronAuth && user) {
+            const isParticipant =
+                trade.proposer_id === user.id || trade.receiver_id === user.id;
+            if (!isParticipant) {
+                const isAdmin = await isAdminUser(user.id);
+                if (!isAdmin) {
+                    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
                 }
             }
+        }
+
+        const stripe = getStripe();
+        const results: { id: string; status: string }[] = [];
+
+        for (const piId of [
+            trade.proposer_payment_intent_id,
+            trade.receiver_payment_intent_id,
+        ]) {
+            if (!piId) {
+                continue;
+            }
+
+            try {
+                const pi = await stripe.paymentIntents.cancel(piId, {
+                    cancellation_reason: "requested_by_customer",
+                });
+                results.push({ id: piId, status: pi.status });
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : "Unknown error";
+                results.push({ id: piId, status: `error: ${message}` });
+            }
+        }
+
+        const { error: clearError } = await supabaseAdmin
+            .from("trades")
+            .update({
+                proposer_payment_intent_id: null,
+                receiver_payment_intent_id: null,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", tradeId);
+
+        if (clearError) {
+            console.error("Failed to clear payment intent ids:", clearError);
         }
 
         return NextResponse.json({ success: true, results });

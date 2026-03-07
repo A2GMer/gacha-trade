@@ -1,5 +1,4 @@
-// lib/mailer.ts
-// Utility function to call the local /api/notify endpoint for sending emails
+import { Resend } from "resend";
 
 interface SendMailParams {
     to: string;
@@ -13,10 +12,20 @@ interface SendMailParams {
 
 export async function sendNotificationEmail(params: SendMailParams) {
     if (typeof window !== "undefined") {
-        throw new Error("This function must be called on the server side or inside an API route.");
+        throw new Error("sendNotificationEmail must run on the server.");
     }
 
-    // A basic responsive HTML template
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+        return {
+            success: false,
+            error: { message: "RESEND_API_KEY is not configured" },
+        };
+    }
+
+    const resend = new Resend(apiKey);
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "Gacha Trade <noreply@resend.dev>";
+
     const html = `
     <!DOCTYPE html>
     <html lang="ja">
@@ -28,7 +37,7 @@ export async function sendNotificationEmail(params: SendMailParams) {
     <body style="font-family: sans-serif; background-color: #f9f9f9; padding: 20px; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <div style="background-color: #2F327D; padding: 20px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 20px;">スワコレ</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px;">Gacha Trade</h1>
             </div>
             <div style="padding: 30px;">
                 <h2 style="font-size: 18px; color: #2F327D; margin-top: 0;">${params.title}</h2>
@@ -38,33 +47,25 @@ export async function sendNotificationEmail(params: SendMailParams) {
                 ${params.actionUrl ? `
                 <div style="text-align: center; margin-top: 30px;">
                     <a href="${params.actionUrl}" style="background-color: #F8B400; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 24px; font-weight: bold; display: inline-block;">
-                        ${params.actionLabel || "確認する"}
+                        ${params.actionLabel || "Open"}
                     </a>
                 </div>
                 ` : ""}
             </div>
             <div style="background-color: #f1f1f1; padding: 15px; text-align: center; font-size: 11px; color: #888;">
-                <p style="margin: 0;">※このメールは送信専用です。返信はできません。</p>
-                <p style="margin: 5px 0 0;">スワコレ事務局</p>
+                <p style="margin: 0;">This email was sent automatically.</p>
+                <p style="margin: 5px 0 0;">Gacha Trade Team</p>
             </div>
         </div>
     </body>
     </html>
     `;
 
-    // In Next.js App Router, since we might call this from another API route,
-    // we should really use the direct Resend instance rather than a fetch to localhost to avoid timeouts/loops.
-    // Changing approach to directly use Resend here, and keep /api/notify just for client-side triggers if any exist.
-
-    const { Resend } = require("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY!);
-    const fromEmail = 'Gacha Trade <noreply@resend.dev>'; // Needs to be configured in Resend dashboard
-
     const { data, error } = await resend.emails.send({
         from: fromEmail,
         to: params.to,
         subject: params.subject,
-        html: html,
+        html,
     });
 
     if (error) {

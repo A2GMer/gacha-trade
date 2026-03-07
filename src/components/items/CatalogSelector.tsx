@@ -129,7 +129,7 @@ export function CatalogSelector({ selectedItemId, onChange, error }: CatalogSele
             const res = await fetch("/api/catalog/ai-enrich", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productName: aiQuery.trim(), userId: user?.id }),
+                body: JSON.stringify({ productName: aiQuery.trim() }),
             });
 
             const data = await res.json();

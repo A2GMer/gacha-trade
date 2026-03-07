@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createServiceRoleClient, getAuthenticatedUser } from "@/lib/api-auth";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-// 既知のメーカー一覧（DB初期データ + スクレイピング結果から蓄積される）
 const KNOWN_MANUFACTURERS = [
-    "バンダイ", "タカラトミーアーツ", "キタンクラブ", "夢屋", "エポック",
-    "ブシロード", "SO-TA", "クオリア", "エール", "ケンエレファント",
-    "いきもん", "海洋堂", "フクヤ", "アミューズ", "メガハウス",
-    "トイズキャビン", "トイズスピリッツ", "スクウェアエニックス",
-    "グッドスマイルカンパニー", "Jドリーム", "石川玩具",
+    "Bandai",
+    "Takara Tomy A.R.T.S",
+    "Kitan Club",
+    "EPOCH",
+    "Bushiroad",
+    "SO-TA",
 ];
 
 interface EnrichResult {
@@ -22,24 +20,13 @@ interface EnrichResult {
 }
 
 async function callGemini(productName: string): Promise<EnrichResult> {
-    const prompt = `以下のカプセルトイ（ガチャガチャ）の商品名から、構造化データを抽出してください。
-
-入力: "${productName}"
-
-出力は以下のJSON形式のみで回答してください（説明文は不要）:
-{
-  "name": "正式な商品名（入力をベースに正式名称に補正）",
-  "manufacturer": "メーカー名",
-  "series": "シリーズ名（キャラクター作品名やIPなど。不明の場合は空文字）",
-  "confidence": 0.0〜1.0（情報の確度。確信がある場合は0.9以上）
-}
-
-メーカー候補: ${KNOWN_MANUFACTURERS.join(", ")}
-
-注意:
-- ガチャガチャ/カプセルトイの商品名です
-- メーカーが候補にない場合は推測してください
-- confidence は情報の確度です（該当メーカーの製品であることの確信度）`;
+    const prompt = [
+        "Classify this capsule toy product name.",
+        `Input: ${productName}`,
+        "Return strict JSON object with keys: name, manufacturer, series, confidence.",
+        `Known manufacturers: ${KNOWN_MANUFACTURERS.join(", ")}`,
+        "Confidence must be 0.0 to 1.0.",
+    ].join("\n");
 
     const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -56,11 +43,21 @@ async function callGemini(productName: string): Promise<EnrichResult> {
         }
     );
 
+    if (!response.ok) {
+        return { name: productName, manufacturer: "", series: "", confidence: 0 };
+    }
+
     const data = await response.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
 
     try {
-        return JSON.parse(text) as EnrichResult;
+        const parsed = JSON.parse(text) as EnrichResult;
+        return {
+            name: parsed.name || productName,
+            manufacturer: parsed.manufacturer || "",
+            series: parsed.series || "",
+            confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0,
+        };
     } catch {
         return { name: productName, manufacturer: "", series: "", confidence: 0 };
     }
@@ -74,66 +71,80 @@ function calculateTrustScore(
 ): number {
     let score = aiResult.confidence;
 
-    // 既知メーカーと一致 → +0.1
-    if (knownManufacturers.some(m => m === aiResult.manufacturer)) {
+    if (knownManufacturers.includes(aiResult.manufacturer)) {
         score += 0.1;
     }
 
-    // 既知シリーズと一致 → +0.1
-    if (knownSeries.some(s => s === aiResult.series)) {
+    if (knownSeries.includes(aiResult.series)) {
         score += 0.1;
     }
 
-    // ユーザー信頼度 → 取引実績に応じて加算
     score += Math.min(0.1, userTradeCount * 0.01);
 
-    return Math.min(1.0, score);
+    return Math.max(0, Math.min(1, score));
 }
 
 export async function POST(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser();
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         if (!GEMINI_API_KEY) {
             return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
         }
 
-        const { productName, userId } = await request.json();
-
+        const { productName } = await request.json();
         if (!productName || typeof productName !== "string") {
             return NextResponse.json({ error: "productName is required" }, { status: 400 });
         }
 
-        // AI解析
-        const aiResult = await callGemini(productName.trim());
+        const normalizedName = productName.trim();
+        if (normalizedName.length < 2 || normalizedName.length > 120) {
+            return NextResponse.json({ error: "productName length is invalid" }, { status: 400 });
+        }
 
-        // DB接続して既知データと照合
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+        const aiResult = await callGemini(normalizedName);
+        const supabaseAdmin = createServiceRoleClient();
 
-        // 既知メーカー・シリーズ一覧を取得
-        const { data: existingCatalog } = await supabase
+        const { data: existingCatalog } = await supabaseAdmin
             .from("catalog_items")
             .select("manufacturer, series")
             .eq("is_approved", true);
 
-        const knownManufacturers = [...new Set((existingCatalog || []).map(c => c.manufacturer))];
-        const knownSeries = [...new Set((existingCatalog || []).map(c => c.series).filter(Boolean))];
+        const knownManufacturers = [
+            ...new Set(
+                (existingCatalog || [])
+                    .map((catalogItem) => catalogItem.manufacturer)
+                    .filter(Boolean)
+            ),
+        ];
 
-        // ユーザーの取引実績
-        let userTradeCount = 0;
-        if (userId) {
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("trade_count")
-                .eq("id", userId)
-                .single();
-            userTradeCount = profile?.trade_count || 0;
-        }
+        const knownSeries = [
+            ...new Set(
+                (existingCatalog || [])
+                    .map((catalogItem) => catalogItem.series)
+                    .filter(Boolean)
+            ),
+        ];
 
-        // 信頼スコア計算
-        const trustScore = calculateTrustScore(aiResult, knownManufacturers, knownSeries, userTradeCount);
+        const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("trade_count")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        const userTradeCount = profile?.trade_count || 0;
+        const trustScore = calculateTrustScore(
+            aiResult,
+            knownManufacturers,
+            knownSeries,
+            userTradeCount
+        );
         const autoApproved = trustScore >= 0.8;
 
-        // 重複チェック
-        const { data: existing } = await supabase
+        const { data: existing } = await supabaseAdmin
             .from("catalog_items")
             .select("id, name, manufacturer, series")
             .eq("name", aiResult.name)

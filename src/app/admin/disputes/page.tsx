@@ -6,8 +6,31 @@ import { AlertTriangle, CheckCircle, RefreshCcw, XCircle, ChevronRight } from "l
 import { formatTime } from "@/lib/utils";
 import Link from "next/link";
 
+interface DisputeTrade {
+    id: string;
+    proposer_id: string;
+    receiver_id: string;
+    proposer_payment_intent_id: string | null;
+    receiver_payment_intent_id: string | null;
+}
+
+interface DisputeReporter {
+    display_name: string | null;
+    email: string | null;
+}
+
+interface DisputeRecord {
+    id: string;
+    trade_id: string;
+    status: string;
+    created_at: string;
+    reason: string;
+    trades: DisputeTrade | null;
+    profiles: DisputeReporter | null;
+}
+
 export default function AdminDisputesPage() {
-    const [disputes, setDisputes] = useState<any[]>([]);
+    const [disputes, setDisputes] = useState<DisputeRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
 
@@ -30,44 +53,37 @@ export default function AdminDisputesPage() {
         fetchDisputes();
     }, []);
 
-    const handleStripeAction = async (disputeId: string, action: 'capture' | 'cancel', tradeData: any, targetUserId: string) => {
-        if (!confirm(`本当にこのStripe処理（${action === 'capture' ? '没収・確定決済' : '返金・キャンセル'}）を実行しますか？`)) return;
+    const handleStripeAction = async (action: 'capture' | 'cancel', tradeData: DisputeTrade, targetUserId: string) => {
+        if (!confirm(`Run Stripe action: ${action}?`)) return;
 
         try {
-            const isProposer = tradeData.proposer_id === targetUserId;
-            const piId = isProposer ? tradeData.proposer_payment_intent_id : tradeData.receiver_payment_intent_id;
-
-            if (!piId) {
-                alert("指定されたユーザーのPaymentIntentIDが見つかりません。");
-                return;
-            }
-
-            const endpoint = action === 'capture' ? '/api/stripe/capture' : '/api/stripe/cancel';
+            const endpoint = action === "capture" ? "/api/deposit/capture" : "/api/deposit/release";
+            const payload =
+                action === "capture"
+                    ? { tradeId: tradeData.id, violatorId: targetUserId }
+                    : { tradeId: tradeData.id };
 
             const res = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    paymentIntentId: piId,
-                    tradeId: tradeData.id,
-                    reason: "admin_decision_for_dispute"
-                })
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.error || "処理に失敗しました");
+                throw new Error(err.error || "Failed to execute Stripe action");
             }
 
-            alert("Stripe処理が完了しました。");
-        } catch (error: any) {
+            alert("Stripe action completed.");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error";
             console.error("Stripe admin action failed:", error);
-            alert(`エラー: ${error.message}`);
+            alert(`Error: ${message}`);
         }
     };
 
     const resolveDispute = async (id: string, tradeId: string) => {
-        if (!confirm("このトラブル報告を「解決済み」にしますか？ 取引画面は再開されます。")) return;
+        if (!confirm("Resolve this dispute and move the trade back to SHIPPED?")) return;
 
         await supabase.from("disputes").update({ status: "RESOLVED" }).eq("id", id);
         // We might want to set the trade back to SHIPPED or COMPLETED, but for simplicity we will set back to SHIPPED.
@@ -120,8 +136,8 @@ export default function AdminDisputesPage() {
                                             <p className="font-mono text-[10px] break-all">{d.trades.proposer_payment_intent_id || "未決済"}</p>
                                             {d.trades.proposer_payment_intent_id && (
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => handleStripeAction(d.id, 'cancel', d.trades, d.trades.proposer_id)} className="btn text-[10px] py-1 bg-success/10 text-success border border-success/20 flex-1"><CheckCircle className="h-3 w-3 mr-1" />返還(Cancel)</button>
-                                                    <button onClick={() => handleStripeAction(d.id, 'capture', d.trades, d.trades.proposer_id)} className="btn text-[10px] py-1 bg-danger/10 text-danger border border-danger/20 flex-1"><XCircle className="h-3 w-3 mr-1" />没収(Capture)</button>
+                                                    <button onClick={() => handleStripeAction('cancel', d.trades, d.trades.proposer_id)} className="btn text-[10px] py-1 bg-success/10 text-success border border-success/20 flex-1"><CheckCircle className="h-3 w-3 mr-1" />返還(Cancel)</button>
+                                                    <button onClick={() => handleStripeAction('capture', d.trades, d.trades.proposer_id)} className="btn text-[10px] py-1 bg-danger/10 text-danger border border-danger/20 flex-1"><XCircle className="h-3 w-3 mr-1" />没収(Capture)</button>
                                                 </div>
                                             )}
                                         </div>
@@ -130,8 +146,8 @@ export default function AdminDisputesPage() {
                                             <p className="font-mono text-[10px] break-all">{d.trades.receiver_payment_intent_id || "未決済"}</p>
                                             {d.trades.receiver_payment_intent_id && (
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => handleStripeAction(d.id, 'cancel', d.trades, d.trades.receiver_id)} className="btn text-[10px] py-1 bg-success/10 text-success border border-success/20 flex-1"><CheckCircle className="h-3 w-3 mr-1" />返還(Cancel)</button>
-                                                    <button onClick={() => handleStripeAction(d.id, 'capture', d.trades, d.trades.receiver_id)} className="btn text-[10px] py-1 bg-danger/10 text-danger border border-danger/20 flex-1"><XCircle className="h-3 w-3 mr-1" />没収(Capture)</button>
+                                                    <button onClick={() => handleStripeAction('cancel', d.trades, d.trades.receiver_id)} className="btn text-[10px] py-1 bg-success/10 text-success border border-success/20 flex-1"><CheckCircle className="h-3 w-3 mr-1" />返還(Cancel)</button>
+                                                    <button onClick={() => handleStripeAction('capture', d.trades, d.trades.receiver_id)} className="btn text-[10px] py-1 bg-danger/10 text-danger border border-danger/20 flex-1"><XCircle className="h-3 w-3 mr-1" />没収(Capture)</button>
                                                 </div>
                                             )}
                                         </div>

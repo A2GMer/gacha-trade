@@ -1,53 +1,91 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { createClient } from "@supabase/supabase-js";
+import { createServiceRoleClient, getAuthenticatedUser } from "@/lib/api-auth";
 
-const DEPOSIT_AMOUNT = parseInt(process.env.STRIPE_DEPOSIT_AMOUNT || "300");
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const DEPOSIT_AMOUNT = parseInt(process.env.STRIPE_DEPOSIT_AMOUNT || "300", 10);
 
-/**
- * 取引成立時にデポジット（Auth Hold）を作成
- * POST /api/deposit/authorize
- * Body: { tradeId: string, userId: string }
- */
 export async function POST(request: NextRequest) {
     try {
-        const stripe = getStripe();
-        const { tradeId, userId } = await request.json();
-
-        if (!tradeId || !userId) {
-            return NextResponse.json({ error: "tradeId and userId are required" }, { status: 400 });
+        const user = await getAuthenticatedUser();
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { tradeId } = await request.json();
+        if (!tradeId || typeof tradeId !== "string") {
+            return NextResponse.json({ error: "tradeId is required" }, { status: 400 });
+        }
+
+        const supabaseAdmin = createServiceRoleClient();
+        const { data: trade, error: tradeError } = await supabaseAdmin
+            .from("trades")
+            .select("id, status, proposer_id, receiver_id, proposer_payment_intent_id, receiver_payment_intent_id")
+            .eq("id", tradeId)
+            .maybeSingle();
+
+        if (tradeError) {
+            console.error("Failed to load trade for deposit authorization:", tradeError);
+            return NextResponse.json({ error: "Failed to load trade" }, { status: 500 });
+        }
+
+        if (!trade) {
+            return NextResponse.json({ error: "Trade not found" }, { status: 404 });
+        }
+
+        const isProposer = trade.proposer_id === user.id;
+        const isReceiver = trade.receiver_id === user.id;
+        if (!isProposer && !isReceiver) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        if (!["PROPOSED", "ACCEPTED"].includes(trade.status)) {
+            return NextResponse.json({ error: "Trade is not in an authorizable status" }, { status: 409 });
+        }
+
+        const existingIntentId = isProposer
+            ? trade.proposer_payment_intent_id
+            : trade.receiver_payment_intent_id;
+
+        if (existingIntentId) {
+            return NextResponse.json({ error: "Deposit already authorized" }, { status: 409 });
+        }
+
+        const stripe = getStripe();
         const paymentIntent = await stripe.paymentIntents.create({
             amount: DEPOSIT_AMOUNT,
             currency: "jpy",
             capture_method: "manual",
             metadata: {
                 tradeId,
-                userId,
+                userId: user.id,
                 type: "gacha_trade_deposit",
             },
-            description: `スワコレ取引デポジット（取引ID: ${tradeId}）`,
+            description: `Gacha trade deposit (tradeId: ${tradeId})`,
         });
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-        const { data: trade } = await supabase
-            .from("trades")
-            .select("proposer_id, receiver_id")
-            .eq("id", tradeId)
-            .single();
-
-        if (!trade) {
-            return NextResponse.json({ error: "Trade not found" }, { status: 404 });
-        }
-
-        const column = trade.proposer_id === userId
+        const column = isProposer
             ? "proposer_payment_intent_id"
             : "receiver_payment_intent_id";
 
-        await supabase.from("trades").update({ [column]: paymentIntent.id }).eq("id", tradeId);
+        const { error: updateError } = await supabaseAdmin
+            .from("trades")
+            .update({
+                [column]: paymentIntent.id,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", tradeId);
+
+        if (updateError) {
+            console.error("Failed to persist payment intent:", updateError);
+            try {
+                await stripe.paymentIntents.cancel(paymentIntent.id, {
+                    cancellation_reason: "abandoned",
+                });
+            } catch (cancelError) {
+                console.error("Failed to rollback payment intent:", cancelError);
+            }
+            return NextResponse.json({ error: "Failed to save deposit authorization" }, { status: 500 });
+        }
 
         return NextResponse.json({
             clientSecret: paymentIntent.client_secret,
